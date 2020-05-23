@@ -1,0 +1,123 @@
+#!/bin/sh
+#
+# Arch Linux Build Kernel script
+#
+# helper script for Signed Kernel Modules
+# https://github.com/gene-git/Arch-SKM
+#
+# Stuart Cardall 20200523
+#
+############################################
+## USER configuration ######################
+## run script with no parameters for help ##
+############################################
+BUILD_DIR=~/build
+GUI_EDITOR=$(which mousepad)
+CONSOLE_EDITOR=$(which nano)
+############################
+## end USER configuration ##
+######################################################
+CMD=$1
+KERNEL=$2
+KBUILD_DIR=${BUILD_DIR}/${KERNEL}
+CMD_LIST="update build install"
+KERNEL_LIST="linux linux-hardened linux-lts linux-zen"
+######################################################
+
+check_config() {
+	local tmpfile=$(mktemp) x= variant=linux-hardened
+
+	# check command
+	if ! echo "$CMD_LIST" | grep -qw "$CMD"; then
+		printf "ERROR: missing valid command from: '$CMD_LIST' as 1st parameter\n" > $tmpfile
+	fi
+
+	# check kernel
+	if ! echo "$KERNEL_LIST" | grep -qw "$KERNEL"; then
+		printf "ERROR: missing kernel variant: 'linux-xxxx' as 2nd parameter\n" >> $tmpfile
+	fi
+
+	# print kernels / usage
+	if grep -q missing $tmpfile; then
+		cat $tmpfile
+		printf "\nAvailable kernels:\n\n"
+
+		for x in $KERNEL_LIST; do
+			echo "$x"
+		done
+
+		printf "\nTo build a kernel run commands '$CMD_LIST' in sequence with a kernel variant:\n\n"
+
+		for x in $CMD_LIST; do
+			echo "Example command: $0 $x $variant"
+		done
+
+		echo
+		exit 1
+	fi
+
+	rm -f $tmpfile
+}
+
+install_kernel() {
+	# helper function to install kernel & headers - but not docs
+	local pkgver= pkglist= pkgdir=
+	cd $KBUILD_DIR
+
+	if ! grep -q KBUILD ./PKGBUILD; then
+		echo "ERROR: cannot find kernel PKGBUILD in current directory"
+		exit 1
+	fi
+
+	pkgver=$(grep ^pkgver PKGBUILD | cut -d\= -f 2)
+	pkgdir=$(grep ^PKGDEST /etc/makepkg.conf | cut -d\= -f 2)
+
+	pkglist=$(ls $pkgdir/*$pkgver* | grep -v doc)
+
+	sudo pacman -U $pkglist
+}
+
+
+update_kernel(){
+	local new_dir=$KBUILD_DIR old_dir=$KBUILD_DIR.old
+
+	echo "new_dir=$new_dir old_dir=$old_dir"
+
+	if [ -d $old_dir ]; then
+		echo "removing $old_dir"
+		rm -rf $old_dir
+	fi
+
+	if [ -d $new_dir ]; then
+		echo "moving previous config: $new_dir => $old_dir"
+		mv $KBUILD_DIR $KBUILD_DIR.old
+	fi
+
+	cd $BUILD_DIR
+	asp update $KERNEL
+	asp export $KERNEL
+
+	# edit files
+	$GUI_EDITOR ${old_dir}/PKGBUILD &
+	$CONSOLE_EDITOR ${new_dir}/PKGBUILD
+}
+
+build_kernel() {
+	if [ ! -d $KBUILD_DIR ]; then
+		echo "creating kernel build directory: $KBUILD_DIR"
+		mkdir -p $KBUILD_DIR
+	fi
+
+	cd $KBUILD_DIR
+	makepkg -s
+}
+
+## START ##
+check_config
+
+case "$CMD" in
+	install) install_kernel;;
+	 update) update_kernel;;
+	  build) build_kernel;;
+	      *) check_config;;
+esac
