@@ -1,0 +1,90 @@
+# Example Arch Linux Kernel PKGBUILD with additions for Signed Kernel Modules  #
+################################################################################
+# prepare() - requires info below inserted at the begining of the function     #
+# _package-headers() - requires info below inserted at the end of the function #
+################################################################################
+
+pkgbase=linux-hardened
+pkgver=5.4.18.a
+pkgrel=2
+pkgdesc='Security-Hardened Linux'
+url='https://github.com/anthraxx/linux-hardened'
+arch=(x86_64)
+license=(GPL2)
+makedepends=(
+  ....
+)
+options=('!strip')
+_srcname=linux-${pkgver%.*}
+source=(
+  ....
+)
+validpgpkeys=(
+  ....
+)
+sha256sums=(....)
+
+
+prepare() {
+
+  # Out-of-tree module signing
+  #
+  ######################################################
+  # this is added at the start of prepare() & replaces #
+  # 'cd $_srcname'                                     #
+  ######################################################
+
+  msg2 "Rebuilding local signing key..."
+  cp -rf /usr/src/certs-local ../
+
+  cd ../certs-local
+  ./genkeys.sh
+
+  msg2 "Updating kernel config with new key..."
+
+  ./fix_config.sh ../src/config
+  cd ../src/$_srcname
+
+# cd $_srcname
+
+  ....
+}
+
+build() {
+  ....
+}
+
+_package() {
+  ....
+}
+
+_package-headers() {
+  ....
+
+  # Out-of-tree module signing
+  ##################################################
+  # this is added at the end of _package-headers() #
+  ##################################################
+  # This is run in the kernel source / build directory
+  #
+  msg2 "Local Signing certs for out-of-tree modules..."
+
+  certs_local_src="../../certs-local"
+  key_dir=$(<${certs_local_src}/current_key_dir)
+
+  certs_local_dst="${builddir}/certs-local"
+  signer="sign_manual.sh"
+  mkdir -p ${certs_local_dst}
+  rsync -a $certs_local_src/{current,$key_dir,$signer} $certs_local_dst/
+
+  # DKMS tools
+  dkms_src="$certs_local_src/dkms"
+  dkms_dst="${pkgdir}/etc/dkms"
+  mkdir -p $dkms_dst
+
+  rsync -a $dkms_src/{kernel-sign.conf,kernel-sign.sh} $dkms_dst/
+}
+
+_package-docs() {
+  ....
+}
