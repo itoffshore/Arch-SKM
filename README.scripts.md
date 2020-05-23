@@ -1,3 +1,4 @@
+```
 [~/git/Arch-SKM/scripts]$ ./abk
 
 ERROR: missing valid command from: 'update build install' as 1st parameter
@@ -15,3 +16,4 @@ To build a kernel run commands 'update build install' in sequence with a kernel 
 Example command: ./abk update linux-hardened
 Example command: ./abk build linux-hardened
 Example command: ./abk install linux-hardened
+```
