@@ -1,0 +1,43 @@
+# This is a default template for a post-install scriptlet.
+## arg 1:  the old package version
+#post_remove() {
+	# do something here
+#}
+
+## arg 1:  the new package version
+## arg 2:  the old package version
+#pre_upgrade() {
+	# do something here
+#}
+
+## arg 1:  the new package version
+## arg 2:  the old package version
+post_install() {
+	local x= module_list="zfs nvidia"
+	local dkms_dir=/etc/dkms dkms_link=
+	local kernel_sign=${dkms_dir}/kernel-sign.conf
+
+	for x in $module_list; do
+		if modinfo $x &>dev/null; then
+			dkms_link="$dkms_dir/$x.conf"
+			if [ ! -f $dkms_link ]; then
+				echo "Creating DKMS symlink: $kernel_sign => $dkms_link"
+				ln -sf $kernel_sign $dkms_link
+			fi
+		fi
+	done
+}
+
+#post_upgrade() {
+	# do something here
+#}
+
+## arg 1:  the old package version
+#pre_remove() {
+	# do something here
+#}
+
+## arg 1:  the old package version
+#post_remove() {
+	# do something here
+#}
