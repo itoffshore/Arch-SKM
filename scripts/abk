@@ -22,6 +22,7 @@ KERNEL=$2
 KBUILD_DIR=${BUILD_DIR}/${KERNEL}
 CMD_LIST="update build install"
 KERNEL_LIST="linux linux-hardened linux-lts linux-zen"
+EXAMPLES=/usr/share/arch-sign-modules/PKGBUILD.example
 ######################################################
 
 check_config() {
@@ -98,7 +99,7 @@ update_kernel(){
 	asp export $KERNEL
 
 	# edit files
-	$GUI_EDITOR ${old_dir}/PKGBUILD &
+	$GUI_EDITOR $EXAMPLES &
 	$CONSOLE_EDITOR ${new_dir}/PKGBUILD
 }
 
