@@ -38,6 +38,15 @@ check_config() {
 		printf "ERROR: missing kernel variant: 'linux-xxxx' as 2nd parameter\n" >> $tmpfile
 	fi
 
+	# check build dir
+	if [ ! -d $BUILD_DIR ]; then
+		mkdir -p $BUILD_DIR
+		if [ $? != 0 [; then
+			echo "ERROR: build directory: '$BUILD_DIR' cannot be created - exiting."
+			exit 1
+		fi
+	fi
+
 	# print kernels / usage
 	if grep -q missing $tmpfile; then
 		cat $tmpfile
@@ -81,8 +90,6 @@ install_kernel() {
 
 update_kernel(){
 	local new_dir=$KBUILD_DIR old_dir=$KBUILD_DIR.old
-
-	echo "new_dir=$new_dir old_dir=$old_dir"
 
 	if [ -d $old_dir ]; then
 		echo "removing $old_dir"
