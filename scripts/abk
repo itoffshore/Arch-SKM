@@ -75,7 +75,8 @@ install_kernel() {
 
 	pkglist=$(ls $pkgdir/*$pkgver* | grep -v doc)
 
-	sudo pacman -U $pkglist
+	# overwrite required for multiple signed kernels
+	sudo pacman -U $pkglist --overwrite /etc/dkms/kernel-sign.conf --overwrite /etc/dkms/kernel-sign.sh
 }
 
 
