@@ -5,7 +5,7 @@
 # helper script for Signed Kernel Modules
 # https://github.com/gene-git/Arch-SKM
 #
-# Stuart Cardall 20200523
+# Stuart Cardall 20200718
 #
 ############################################
 ## USER configuration ######################
@@ -90,25 +90,22 @@ install_kernel() {
 
 
 update_kernel(){
-	local new_dir=$KBUILD_DIR old_dir=$KBUILD_DIR.old
-
-	if [ -d $old_dir ]; then
-		echo "removing $old_dir"
-		rm -rf $old_dir
-	fi
-
-	if [ -d $new_dir ]; then
-		echo "moving previous config: $new_dir => $old_dir"
-		mv $KBUILD_DIR $KBUILD_DIR.old
-	fi
+	local status=
 
 	cd $BUILD_DIR
 	asp update $KERNEL
-	asp export $KERNEL
+	status=$?
+
+	if [ $status != 0 ]; then
+		echo "ERROR: retrieving $KERNEL PKGBUILD failed."
+		exit 1
+	else
+		asp -f export $KERNEL
+	fi
 
 	# edit files
 	$GUI_EDITOR $EXAMPLES &
-	$CONSOLE_EDITOR ${new_dir}/PKGBUILD
+	$CONSOLE_EDITOR $KBUILD_DIR/PKGBUILD
 }
 
 build_kernel() {
