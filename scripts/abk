@@ -93,6 +93,12 @@ update_kernel(){
 	local status=
 
 	cd $BUILD_DIR
+
+	# asp no longer has a force option
+	if [ -d $KERNEL ]; then
+		rm -rf $KERNEL
+	fi
+
 	asp update $KERNEL
 	status=$?
 
