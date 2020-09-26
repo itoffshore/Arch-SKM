@@ -52,6 +52,9 @@ prepare() {
 
 build() {
   ....
+  # see https://wiki.archlinux.org/index.php/Kernel/Arch_Build_System
+  # 'Avoid creating the doc'
+  #make htmldocs
 }
 
 _package() {
@@ -88,3 +91,8 @@ _package-headers() {
 _package-docs() {
   ....
 }
+
+# see https://wiki.archlinux.org/index.php/Kernel/Arch_Build_System
+# 'Avoid creating the doc'
+#pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
+pkgname=("$pkgbase" "$pkgbase-headers")
