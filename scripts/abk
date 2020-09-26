@@ -100,7 +100,7 @@ update_kernel(){
 		echo "ERROR: retrieving $KERNEL PKGBUILD failed."
 		exit 1
 	else
-		asp -f export $KERNEL
+		asp export $KERNEL
 	fi
 
 	# edit files
