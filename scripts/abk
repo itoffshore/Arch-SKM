@@ -5,7 +5,7 @@
 # helper script for Signed Kernel Modules
 # https://github.com/gene-git/Arch-SKM
 #
-# Stuart Cardall 20200718
+# Stuart Cardall 20200926
 #
 ############################################
 ## USER configuration ######################
@@ -93,6 +93,12 @@ update_kernel(){
 	local status=
 
 	cd $BUILD_DIR
+
+	# asp no longer has a force option
+	if [ -d $KERNEL ]; then
+		rm -rf $KERNEL
+	fi
+
 	asp update $KERNEL
 	status=$?
 
@@ -118,12 +124,16 @@ build_kernel() {
 	makepkg -s
 }
 
-## START ##
-check_config
+main() {
+	check_config
 
-case "$CMD" in
-	install) install_kernel;;
-	 update) update_kernel;;
-	  build) build_kernel;;
-	      *) check_config;;
-esac
+	case "$CMD" in
+		install) install_kernel;;
+		 update) update_kernel;;
+		  build) build_kernel;;
+		      *) check_config;;
+	esac
+}
+
+## START ##
+time main
