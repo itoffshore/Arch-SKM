@@ -5,17 +5,18 @@
 # helper script for Signed Kernel Modules
 # https://github.com/gene-git/Arch-SKM
 #
-# Stuart Cardall 20200926
+# Stuart Cardall 20210812
 #
 ############################################
 ## USER configuration ######################
 ## run script with no parameters for help ##
 ############################################
 BUILD_DIR=~/build
-GUI_EDITOR=$(which mousepad)
-CONSOLE_EDITOR=$(which nano)
-############################
-## end USER configuration ##
+GUI_EDITOR=mousepad
+CONSOLE_EDITOR=nano
+## custom USER VARS are sourced
+#################################
+USER_CONFIG=~/.config/abk.conf ##
 ######################################################
 CMD=$1
 KERNEL=$2
@@ -27,6 +28,11 @@ EXAMPLES=/usr/share/arch-sign-modules/PKGBUILD.example
 
 check_config() {
 	local tmpfile=$(mktemp) x= variant=linux-hardened
+
+	# USER configuration can be stored here
+	if [ -f $USER_CONFIG ]; then
+		source $USER_CONFIG
+	fi
 
 	# check command
 	if ! echo "$CMD_LIST" | grep -qw "$CMD"; then
@@ -46,6 +52,15 @@ check_config() {
 			exit 1
 		fi
 	fi
+
+	# check editors
+	for x in $GUI_EDITOR $CONSOLE_EDITOR; do
+		if ! type "$x" &> /dev/null; then
+			echo "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')"
+			echo "see also: /usr/share/arch-sign-modules/README.scripts.md"
+			exit 1
+		fi
+	done
 
 	# print kernels / usage
 	if grep -q missing $tmpfile; then
@@ -90,13 +105,15 @@ install_kernel() {
 
 
 update_kernel(){
-	local status=
+	local status= tmp=$(mktemp -d)
 
 	cd $BUILD_DIR
 
-	# asp no longer has a force option
+	# rsync an empty directory is much faster than rm -rf
 	if [ -d $KERNEL ]; then
-		rm -rf $KERNEL
+		printf "\ndeleting old kernel sources: $KBUILD_DIR...\n\n"
+		sleep 1.15 && rsync --progress -a --delete $tmp/ $KBUILD_DIR/
+		rmdir $tmp $KBUILD_DIR
 	fi
 
 	asp update $KERNEL
@@ -130,10 +147,10 @@ main() {
 	case "$CMD" in
 		install) install_kernel;;
 		 update) update_kernel;;
-		  build) build_kernel;;
+		  build) time build_kernel;;
 		      *) check_config;;
 	esac
 }
 
 ## START ##
-time main
+main
