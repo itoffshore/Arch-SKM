@@ -1,3 +1,7 @@
+Version [0.2.54]                                                    - 20210812
+  - Add configurable USER VAR functionality
+  - Speed up old kernel source removal with rsync
+
 Version [0.2.1]                                                     - 20200523
   - Add Arch Linux helper script
 

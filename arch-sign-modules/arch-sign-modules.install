@@ -13,14 +13,14 @@
 ## arg 1:  the new package version
 ## arg 2:  the old package version
 post_install() {
-	local x= module_list="zfs nvidia"
+	local x= module_list="zfs nvidia p_lkrg"
 	local dkms_dir=/etc/dkms dkms_link=
 	local kernel_sign=${dkms_dir}/kernel-sign.conf
 
 	for x in $module_list; do
 		if modinfo $x &>/dev/null; then
 			dkms_link="$dkms_dir/$x.conf"
-			if [ ! -f $dkms_link ]; then
+			if [ ! -L $dkms_link ]; then
 				echo "Creating DKMS symlink: $kernel_sign => $dkms_link"
 				ln -sf $kernel_sign $dkms_link
 			fi
