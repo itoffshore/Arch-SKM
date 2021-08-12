@@ -1,3 +1,14 @@
+If `~/.config/abk.conf` exists USER configurable variables will be sourced by `abk`:
+```
+BUILD_DIR=~/build
+GUI_EDITOR=mousepad
+CONSOLE_EDITOR=nano
+```
+
+edit to suit your local environment.
+
+Run `abk` with no parameters to view it's `help` information:
+
 ```
 [~/git/Arch-SKM/scripts]$ ./abk
 
