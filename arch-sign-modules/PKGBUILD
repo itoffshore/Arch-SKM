@@ -11,7 +11,7 @@ depends=('asp' 'rsync')
 makedepends=()
 install="$pkgname.install"
 source=($pkgname-$pkgver.tar.gz::https://github.com/itoffshore/$_pkgname/archive/$pkgver.tar.gz)
-md5sums=('27611f53583d955d77483e79607d43e3')
+md5sums=('3f698fe007d63953c18bbc2c547b7e94')
 
 build() {
   return 0
