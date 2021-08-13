@@ -88,6 +88,13 @@ do
         xz -f --decompress $mod_tmp
         mod_tmp=${mod_tmp%*.xz}
     fi
+    iszst='n'
+    if [ "$ext" = "zst" ] ; then
+        echo "Decompressing :"
+        iszst='y'
+        zstd -dfq $mod_tmp
+        mod_tmp=${mod_tmp%*.zst}
+    fi
 
     #
     # remove any existing signature before signing
@@ -105,6 +112,11 @@ do
         echo "Compressing:"
         xz -f $mod_tmp
         mod_tmp=${mod_tmp}.xz
+    fi
+    if [ "$iszst" = "y" ] ; then
+        echo "Compressing:"
+        zstd -fq $mod_tmp
+        mod_tmp=${mod_tmp}.zst
     fi
 
     #

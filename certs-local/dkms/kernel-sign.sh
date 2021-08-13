@@ -15,7 +15,7 @@ SIGN=/usr/lib/modules/$kernelver/build/certs-local/sign_manual.sh
 
 if [ -f $SIGN ] ;then
 
-   list=$(/bin/ls -1 *.ko *.ko.xz 2>/dev/null)
+   list=$(/bin/ls -1 *.ko *.ko.xz *.ko.zst 2>/dev/null)
 
    if [ "$list" != "" ]  ; then
        for mod in $list
