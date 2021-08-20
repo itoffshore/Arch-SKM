@@ -2,6 +2,7 @@
 ################################################################################
 # prepare() - requires info below inserted at the begining of the function     #
 # _package-headers() - requires info below inserted at the end of the function #
+# build() & pkgname variables are shown changed below to avoid making the docs #
 ################################################################################
 
 pkgbase=linux-hardened
