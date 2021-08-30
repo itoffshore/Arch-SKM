@@ -2,7 +2,7 @@
 #
 # Out of Tree Module Sign script:
 #
-# This will be installed in 
+# This will be installed in
 #
 # /usr/lib/modules/<kernel-vers>/build/certs-local
 #
@@ -10,7 +10,7 @@
 #    Tmp   - working directory
 #
 # Requires:
-# 
+#
 # Ensure that signing is idempotent.
 #
 # Gene 20191110
@@ -22,7 +22,7 @@ HASH=sha512
 Modules="$@"
 
 #
-# Where 
+# Where
 #
 MyRealpath=$(realpath $0)
 MyDirName=$(dirname $MyRealpath)
@@ -38,7 +38,7 @@ CRT=${MyDirName}/current/signing_crt.crt
 
 
 #
-# Sign them 
+# Sign them
 #
 echo "Module signing key : $KEY"
 
@@ -49,7 +49,7 @@ function is_signed () {
      hexdump -C $f |tail  |grep 'Module sign' > /dev/null
      rc=$?
      if [ $rc = 0 ] ; then
-         has_sig='y' 
+         has_sig='y'
      fi
      echo $has_sig
 }
@@ -60,7 +60,7 @@ function is_signed () {
 for mod in $Modules
 do
 
-    moddir=$(dirname $mod) 
+    moddir=$(dirname $mod)
 
     if [ "$moddir" = "." ] ; then
         moddir="./"
@@ -83,17 +83,24 @@ do
     ext=${mod##*.}
     isxz='n'
     if [ "$ext" = "xz" ] ; then
-        echo "Decompressing :"
+        echo "Decompressing xz:"
         isxz='y'
         xz -f --decompress $mod_tmp
         mod_tmp=${mod_tmp%*.xz}
     fi
     iszst='n'
     if [ "$ext" = "zst" ] ; then
-        echo "Decompressing :"
+        echo "Decompressing zst:"
         iszst='y'
         zstd -dfq $mod_tmp
         mod_tmp=${mod_tmp%*.zst}
+    fi
+    isgz='n'
+    if [ "$ext" = "gz" ] ; then
+        echo "Decompressing gz:"
+        isgz='y'
+        gzip -d $mod_tmp
+        mod_tmp=${mod_tmp%*.gz}
     fi
 
     #
@@ -133,6 +140,4 @@ do
 
 done
 
-exit 
-
-
+exit
