@@ -55,19 +55,19 @@ prepare() {
   # Out-of-tree module signing
 ```
 
-Other AUR kernels may also need `$builddir` set to match the Package Maintainer's variable for the module build directory inside the package:
+* Other AUR kernels may also need `$builddir` set to match the Package Maintainer's variable for the module build directory inside the package:
 ```
 _package-headers() {
   local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
 ```
 To make the example changes that open in `GUI_EDITOR` during kernel configuration work as noted below.
 
-Some AUR kernels may also need the Kernel module signing facility enabled if for example the following file does not exist in the package:
+* Some AUR kernels may also need the **Kernel module signing facility** enabled if for example the following file does not exist in the package:
 `/usr/lib/modules/kernel-variant/build/scripts/sign-file`
 
-For these unconfigured kernels you will see `sign-file.c` inside the package's modules build scripts directory.
+* For these unconfigured kernels you will see `sign-file.c` inside the package's modules build scripts directory.
 
-See also: [Kernel module signing facility][(https://www.kernel.org/doc/html/v5.13/admin-guide/module-signing.html?highlight=module%20signing)
+* See also: [Kernel module signing facility](https://www.kernel.org/doc/html/v5.13/admin-guide/module-signing.html?highlight=module%20signing)
 --- 
 
 * With the [arch-sign-modules](https://aur.archlinux.org/packages/arch-sign-modules/) AUR package installed, during the first `update` stage the configured `GUI_EDITOR` will open the [PKGBUILD configuration example](https://github.com/itoffshore/Arch-SKM/blob/master/Arch-Linux-PKGBUILD-example) with instructions to edit the kernel `PKGBUILD` which will simultaneously open in the configured `CONSOLE_EDITOR`.
