@@ -8,6 +8,11 @@
 * `linux-lts`
 * `linux-hardened`
 * `linux-zen`
+* `linux-hardened-cacule`
+* `linux-xanmod-cacule`
+* `linux-ck`
+* `linux-libre`
+* `AUR kernels`
 
 With **DKMS** support for the following _Out of Tree_ Kernel Modules:
 

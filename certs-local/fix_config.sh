@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Arg: config file
-# 
+#
 # Update kernel config : CONFIG_SYSTEM_TRUSTED_KEYS to use current keys
 #
 # Gene 20191110
