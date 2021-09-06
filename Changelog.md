@@ -1,4 +1,8 @@
-Version [0.2.6]                                                    - 20210830
+Version [0.2.61]                                                    - 20210906
+ - Add archive_config() to create tar.xz archive of existing kernel configuration
+   during update_kernel()
+
+Version [0.2.60]                                                    - 20210830
  - Command line switches & help menu implemented with getops
  - Add functionality to build AUR kernels
  - Add functionality to change module compression algorithm
