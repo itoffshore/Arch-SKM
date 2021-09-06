@@ -195,6 +195,23 @@ check_compress() {
 	fi
 }
 
+archive_config() {
+	# Archive kernel configs
+	local archive=
+
+	# source PKGBUILD vars
+	check_pkgver
+	archive=$KERNEL-$pkgver.tar.xz
+
+	cd $BUILD_DIR
+
+	# create archive
+	if [ -d $KERNEL ]; then
+		printf "Backing up: $KBUILD_DIR => $BUILD_DIR/$archive\n"
+		tar -cJf $archive -C $BUILD_DIR $KERNEL
+	fi
+}
+
 install_kernel() {
 	# display list of built kernel + header versions
 	local pkglist= ksign='/etc/dkms/kernel-sign' tmp=$(mktemp)
@@ -245,8 +262,9 @@ update_kernel() {
 
 	cd $BUILD_DIR
 
-	# clean old config
+	# backup & clean old config
 	if [ -d $KERNEL ]; then
+		archive_config $KERNEL
 		clean_dir $KBUILD_DIR build
 	fi
 
