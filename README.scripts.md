@@ -45,12 +45,12 @@ Configured kernels:
 * linux-ck
 * linux-libre
 ```
-* NB: some AUR kernel `PKDBUILD` do not use `$_srcname` & `$builddir` variables that the officially supported kernels do. For some AUR kernels you will need to set values to match the Package Maintainer's variable:
+* NB: some AUR kernel `PKGBUILD` do not use `$_srcname` & `$builddir` variables that the officially supported kernels do. For some AUR kernels you will need to set values to match the Package Maintainer's variable:
 ```
 linux-xanmod-cacule:
 
 prepare() {
-  _srcname=linux-${_major}
+  local _srcname=linux-${_major}
 
   # Out-of-tree module signing
 ```
