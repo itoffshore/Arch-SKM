@@ -18,8 +18,10 @@ Usage: abk [OPTIONS]
 	[ -b ] : build [ kernel-name ]
 	[ -i ] : install [ kernel-name ]
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
-	[ -s ] : clean makepkg source dir selectively ($SRCDEST)
-	[ -l ] : clean makepkg log dir selectively ($LOGDEST)
+	[ -s ] : clean makepkg source dir selectively ( $SRCDEST )
+	[ -l ] : clean makepkg log dir selectively ( $LOGDEST )
+	[ -o ] : remove old packages selectively ( $PKGDEST )
+	[ -w ] : print build log warnings [ kernel-name ]
 	[ -h ] : this help message
 
 Run the following 3 commands in sequence with a kernel variant to build a signed kernel:
@@ -29,10 +31,12 @@ Run the following 3 commands in sequence with a kernel variant to build a signed
  abk -i linux-hardened
 
 Utilities:
-----------
+-----------------------------------------------------
  abk -c /path/to/somewhere
- abk -s  (selectively clean makepkg source directory)
- abk -l  (selectively clean makepkg log directory)
+ abk -s  (selectively clean makepkg $SRCDEST)
+ abk -l  (selectively clean makepkg $LOGDEST)
+ abk -o  (selectively clean makepkg $PKGDEST with paccache)
+ abk -w kernel-name (selectively print build log warnings & errors)
 
 Configured kernels:
 -------------------
