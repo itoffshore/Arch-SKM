@@ -6,7 +6,7 @@
 # --------------------------------------
 # https://github.com/itoffshore/Arch-SKM
 #
-# Stuart Cardall 20210830
+# Stuart Cardall 20210914
 #
 ############################################
 ## USER configuration ######################
@@ -51,6 +51,8 @@ Usage: $script [OPTIONS]
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
 	[ -s ] : clean makepkg source dir selectively ( $(parse_makepkg SRCDEST) )
 	[ -l ] : clean makepkg log dir selectively ( $(parse_makepkg LOGDEST) )
+	[ -o ] : remove old packages selectively ( $(parse_makepkg PKGDEST) )
+	[ -w ] : print build log warnings [ kernel-name ]
 	[ -h ] : this help message
 
 Run the following 3 commands in sequence with a kernel variant to build a signed kernel:
@@ -60,10 +62,12 @@ Run the following 3 commands in sequence with a kernel variant to build a signed
  $script -i linux-hardened
 
 Utilities:
---------------------------------
- $script -c /tmp/makepkg/kernel-name
+--------------------------
+ $script -c /path/to/somewhere
  $script -s
  $script -l
+ $script -o
+ $script -w kernel-name
 
 EOF
         exit 0
@@ -100,13 +104,15 @@ check_config() {
 		fi
 	fi
 
-	# check editors
-	for x in $GUI_EDITOR $CONSOLE_EDITOR; do
-		if ! type "$x" &> /dev/null; then
-			printf "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')\n"
-			die "See also: $README"
-		fi
-	done
+	# check editors if in a graphical session
+	if [[ ! $DISPLAY && $XDG_VTNR -le 3 ]]; then
+		for x in $GUI_EDITOR $CONSOLE_EDITOR; do
+			if ! type "$x" &> /dev/null; then
+				printf "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')\n"
+				die "See also: $README"
+			fi
+		done
+	fi
 }
 
 check_pkgver() {
@@ -156,7 +162,7 @@ check_compress() {
 		algo_detect=false
 	fi
 
-	read -p "Change current module compression: '$algo' ? [Y/N] : " ans
+	read -p "Change current module compression: '$algo' ? [y/N] : " ans
 
 	if [ "$ans" = "y" ] || [ "$ans" = "Y" ]; then
 		# print compression menu
@@ -212,10 +218,73 @@ archive_config() {
 	fi
 }
 
+remove_old_pkgs() {
+	local pkgdir=$(parse_makepkg PKGDEST) target= keep= ans=
+
+	if [ -x $(which paccache) ]; then
+		printf "Preparing to clean old packages in: $pkgdir\n\n"
+		read -p "Enter number of packages to keep ? [ default: 3] : " ans
+		keep=$(echo $ans | tr -cd "[:digit:]")
+
+		if [ -z "$keep" ] || [ "$keep" -lt 1 ]; then
+			keep=3
+		fi
+
+		read -p "Enter optional package target ? [ default: all ] : " target
+		read -p "Remove packages ? [y/N] [ default: --dry-run ] : " ans
+
+		case "$ans" in
+			y|Y) paccache -rvk${keep} -c $pkgdir $target ;;
+			  *) paccache -dvk${keep} -c $pkgdir $target ;;
+		esac
+	else
+		printf "Install optional depends pacman-contrib for option -o to work.\n"
+	fi
+}
+
+print_warnings() {
+	# display list of kernel logs
+	local kern_log_list= kern_ctr=0 log= ans= tmp=$(mktemp)
+	local logdir=$(parse_makepkg LOGDEST) kernel_log=
+
+	kern_log_list=$(find $logdir -maxdepth 1 -type f -regextype posix-extended \
+			-regex ".*$KERNEL\-[0-9\.]+.*\-build.log")
+
+	# print kernel menu
+	if [ -n "$kern_log_list" ]; then
+		for log in $kern_log_list; do
+			kern_ctr=$(( kern_ctr +1 ))
+			echo "$kern_ctr) : $(basename $log)" >> $tmp
+		done
+	else
+		die "No logs found for kernel: $KERNEL"
+	fi
+
+	# read choice
+	if [ $kern_ctr -gt 1 ]; then
+		cat $tmp; rm -f $tmp
+		ans=0
+
+		while [ $ans  -lt 1 ] || [ $ans -gt $kern_ctr ]; do
+			printf "\nChoose kernel build log to parse for warnings [1 - $kern_ctr] : "; read ans; echo
+			ans=$(echo $ans | tr -cd [:digit:])
+			if [ -z $ans ]; then die "No kernel build log chosen quitting."; fi
+
+			kernel_log=$(echo $kern_log_list | awk -v var="$ans" '{print $var}')
+		done
+	else
+		kernel_log=$kern_log_list
+	fi
+
+	printf "Warnings & errors from: $kernel_log\n\n"
+	# parse log excluding error named object files & parse again for coloured grep
+	grep -vE \/.*error.*.o$ $kernel_log | grep --colour=auto -iE "(warning|error)"
+}
+
 install_kernel() {
 	# display list of built kernel + header versions
-	local pkglist= ksign='/etc/dkms/kernel-sign' tmp=$(mktemp)
-	local pkgbuild=${KBUILD_DIR}/PKGBUILD kern_list= kern_ctr=0 pkg= ans=
+	local pkglist= ksign='/etc/dkms/kernel-sign'
+	local kern_list= kern_ctr=0 pkg= ans= tmp=$(mktemp)
 	local kernel_install= header_install= pkgdir=$(parse_makepkg PKGDEST)
 
 	kern_list=$(find $pkgdir -maxdepth 1 -type f -regextype posix-extended \
@@ -224,10 +293,14 @@ install_kernel() {
 			-regex ".*$KERNEL-headers\-[0-9\.]+.*")
 
 	# print kernel menu
-	for pkg in $kern_list; do
-		kern_ctr=$(( kern_ctr +1 ))
-		echo "$kern_ctr) : $(basename $pkg)" >> $tmp
-	done
+	if [ -n "$kern_list" ]; then
+		for pkg in $kern_list; do
+			kern_ctr=$(( kern_ctr +1 ))
+			echo "$kern_ctr) : $(basename $pkg)" >> $tmp
+		done
+	else
+		die "No installable packages for kernel: $KERNEL"
+	fi
 
 	# read choice
 	if [ $kern_ctr -gt 1 ]; then
@@ -477,7 +550,7 @@ get_options() {
 	# check build dir & editors
 	check_config
 
-	while getopts ":u:b:i:c:hzl" opt
+	while getopts ":u:b:i:c:w:hzlo" opt
 
 	do
 		if [ -n "${OPTARG}" ]; then
@@ -493,6 +566,8 @@ get_options() {
 			c) check_args $opt dir $arg ; clean_dir $arg sources ;;
 			z) clean_sources ;;
 			l) clean_logs ;;
+			w) KERNEL=${OPTARG}; print_warnings ;;
+			o) remove_old_pkgs ;;
 			h) usage ;;
 			:) check_args $OPTARG none none ;;
 		       \?) usage ;;
