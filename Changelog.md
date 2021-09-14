@@ -1,3 +1,10 @@
+Version [0.2.62]                                                    - 20210906
+ - Add print_warnings() to selectively print build log warnings & errors
+ - Remove unused $pkgbuild from install_kernel() & add detection for non existent
+   kernels
+ - Add remove_old_pkgs() to selectively clean PKGDEST with paccache
+ - Add pacman-contrib as optional depends to provide paccache
+
 Version [0.2.61]                                                    - 20210906
  - Add archive_config() to create tar.xz archive of existing kernel configuration
    during update_kernel()
