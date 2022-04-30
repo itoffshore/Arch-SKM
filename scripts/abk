@@ -47,7 +47,7 @@ Edit to suit your local environment.
 Usage: $script [OPTIONS]
 	[ -u ] : update [ kernel-name ]
 	[ -b ] : build [ kernel-name ]
-	[ -i ] : install [ kernel-name ]
+	[ -i ] : install [ kernel-name / AUR pkgname ]
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
 	[ -s ] : clean makepkg source dir selectively ( $(parse_makepkg SRCDEST) )
 	[ -l ] : clean makepkg log dir selectively ( $(parse_makepkg LOGDEST) )
@@ -60,6 +60,7 @@ Run the following 3 commands in sequence with a kernel variant to build a signed
  $script -u linux-hardened
  $script -b linux-hardened
  $script -i linux-hardened
+ $script -i AUR-pkgname
 
 Utilities:
 --------------------------
@@ -231,7 +232,7 @@ remove_old_pkgs() {
 		fi
 
 		read -p "Enter optional package target ? [ default: all ] : " target
-		read -p "Remove packages ? [y/N] [ default: --dry-run ] : " ans
+		read -p "Remove packages ? [y/N] [ default: --dry-run ] : " ans; echo
 
 		case "$ans" in
 			y|Y) paccache -rvk${keep} -c $pkgdir $target ;;
@@ -282,8 +283,8 @@ print_warnings() {
 }
 
 install_kernel() {
-	# display list of built kernel + header versions
-	local pkglist= ksign='/etc/dkms/kernel-sign'
+	# display list of manually built packages
+	local pkgtype= pkglist= ksign='/etc/dkms/kernel-sign'
 	local kern_list= kern_ctr=0 pkg= ans= tmp=$(mktemp)
 	local kernel_install= header_install= pkgdir=$(parse_makepkg PKGDEST)
 
@@ -292,6 +293,12 @@ install_kernel() {
 	header_list=$(find $pkgdir -maxdepth 1 -type f -regextype posix-extended \
 			-regex ".*$KERNEL-headers\-[0-9\.]+.*")
 
+	# install any manually built pkg works
+	case "$KERNEL" in
+		linux-*) pkgtype='kernel' ;;
+		      *) pkgtype='package' ;;
+	esac
+
 	# print kernel menu
 	if [ -n "$kern_list" ]; then
 		for pkg in $kern_list; do
@@ -299,7 +306,7 @@ install_kernel() {
 			echo "$kern_ctr) : $(basename $pkg)" >> $tmp
 		done
 	else
-		die "No installable packages for kernel: $KERNEL"
+		die "No installable ${pkgtype}s found for: $KERNEL"
 	fi
 
 	# read choice
@@ -308,9 +315,9 @@ install_kernel() {
 		ans=0
 
 		while [ $ans  -lt 1 ] || [ $ans -gt $kern_ctr ]; do
-			printf "\nChoose kernel to install [1 - $kern_ctr] : "; read ans; echo
+			printf "\nChoose $pkgtype to install [1 - $kern_ctr] : "; read ans; echo
 			ans=$(echo $ans | tr -cd [:digit:])
-			if [ -z $ans ]; then die "No kernel chosen quitting."; fi
+			if [ -z $ans ]; then die "No $pkgtype chosen: quitting."; fi
 
 			kernel_install=$(echo $kern_list | awk -v var="$ans" '{print $var}')
 			header_install=$(echo $header_list | awk -v var="$ans" '{print $var}')
@@ -401,7 +408,7 @@ clean_dir() {
 
 	# rsync an empty directory is much faster than rm -rf
 	if [ -d $dir ]; then
-		read -p "Clean directory: $dir [Y/N]: " ans
+		read -p "Clean directory: $dir [y/N]: " ans
 
 		case "$ans" in
 			y|Y) printf "Cleaning up: $dir...\n"
