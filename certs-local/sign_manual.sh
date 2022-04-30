@@ -2,18 +2,17 @@
 #
 # Out of Tree Module Sign script:
 #
-# This will be installed in
+# This will be installed in 
 #
 # /usr/lib/modules/<kernel-vers>/build/certs-local
 #
 #  Uses dirs :
 #    Tmp   - working directory
 #
-# Requires:
+# Requires: bash,  rsync, hexdump, zstd, xz
+# 
+# Ensures that signing is idempotent.
 #
-# Ensure that signing is idempotent.
-#
-# Gene 20191110
 
 #
 # Inputs
@@ -22,7 +21,7 @@ HASH=sha512
 Modules="$@"
 
 #
-# Where
+# Where 
 #
 MyRealpath=$(realpath $0)
 MyDirName=$(dirname $MyRealpath)
@@ -38,7 +37,7 @@ CRT=${MyDirName}/current/signing_crt.crt
 
 
 #
-# Sign them
+# Sign them 
 #
 echo "Module signing key : $KEY"
 
@@ -46,10 +45,11 @@ echo "Module signing key : $KEY"
 function is_signed () {
      f=$1
      has_sig='n'
-     hexdump -C $f |tail  |grep 'Module sign' > /dev/null
+     #hexdump -C $f |tail  |grep 'Module sign' > /dev/null
+     hexdump --e '"%_p"' $f |tail  |grep 'Module sign' > /dev/null
      rc=$?
      if [ $rc = 0 ] ; then
-         has_sig='y'
+         has_sig='y' 
      fi
      echo $has_sig
 }
@@ -60,7 +60,7 @@ function is_signed () {
 for mod in $Modules
 do
 
-    moddir=$(dirname $mod)
+    moddir=$(dirname $mod) 
 
     if [ "$moddir" = "." ] ; then
         moddir="./"
@@ -82,25 +82,20 @@ do
 
     ext=${mod##*.}
     isxz='n'
+    iszstd='n'
+
     if [ "$ext" = "xz" ] ; then
-        echo "Decompressing xz:"
+        echo "Decompressing :"
         isxz='y'
         xz -f --decompress $mod_tmp
         mod_tmp=${mod_tmp%*.xz}
     fi
-    iszst='n'
-    if [ "$ext" = "zst" ] ; then
-        echo "Decompressing zst:"
-        iszst='y'
-        zstd -dfq $mod_tmp
-        mod_tmp=${mod_tmp%*.zst}
-    fi
-    isgz='n'
-    if [ "$ext" = "gz" ] ; then
-        echo "Decompressing gz:"
-        isgz='y'
-        gzip -d $mod_tmp
-        mod_tmp=${mod_tmp%*.gz}
+
+    if [ "$ext" = "zstd" ] ; then
+        echo "Decompressing :"
+        iszstd='y'
+        zstd -f --decompress $mod_tmp
+        mod_tmp=${mod_tmp%*.zstd}
     fi
 
     #
@@ -120,11 +115,13 @@ do
         xz -f $mod_tmp
         mod_tmp=${mod_tmp}.xz
     fi
-    if [ "$iszst" = "y" ] ; then
+
+    if [ "$iszstd" = "y" ] ; then
         echo "Compressing:"
-        zstd -fq $mod_tmp
-        mod_tmp=${mod_tmp}.zst
+        zstd -f $mod_tmp
+        mod_tmp=${mod_tmp}.zstd
     fi
+
 
     #
     # backup current and install newly signed module
@@ -140,4 +137,8 @@ do
 
 done
 
-exit
+exit 
+
+
+
+

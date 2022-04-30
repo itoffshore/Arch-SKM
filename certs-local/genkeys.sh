@@ -4,19 +4,29 @@
 #
 # Each key pair is stored by date-time
 #
-# Gene 20191110
 
 Dt=$(date +'%Y%m%d-%H%M')
 
 mkdir -p $Dt
-
 KernKey="${Dt}/signing_key.pem"
 PrivKey="${Dt}/signing_prv.key"
 KernCrt="${Dt}/signing_crt.crt"
 
 
-openssl req -new -nodes -utf8 -sha512 -days 36500 -batch -x509 -config ./x509.oot.genkey \
-        -outform PEM -out $KernKey -keyout $KernKey
+#
+# kernel config must have :
+# CONFIG_MODULE_SIG_KEY_TYPE_ECDSA=y
+# CONFIG_MODULE_SIG_HASH="sha512"        
+#  script greps hash type from ../config but you can also hard code to be consistent
+#
+#hash="sha512"           
+hash=$(grep CONFIG_MODULE_SIG_HASH ../config | sed -e 's/CONFIG_MODULE_SIG_HASH="//' -e 's/"//g')
+
+#
+# EC keys
+#
+openssl req -new -nodes -utf8 -${hash} -days 36500  -batch -x509 -config ./x509.oot.genkey \
+    -outform PEM -out $KernKey -keyout $KernKey  -newkey ec -pkeyopt ec_paramgen_curve:secp384r1
 
 
 chmod 0600 $KernKey
