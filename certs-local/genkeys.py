@@ -87,7 +87,7 @@ def kern_config_hash(kconfig):
     khash = 'sha512'
     ktype = 'rsa'
 
-    match_conf = {'ec'   : 'CONFIG_MODULE_SIG_KEY_TYPE_ECDSA',
+    match_conf = {'ec'   : 'CONFIG_MODULE_SIG_KEY_TYPE_ECDSA', 
                   'hash' : 'CONFIG_MODULE_SIG_HASH',
                  }
 
@@ -95,7 +95,7 @@ def kern_config_hash(kconfig):
     if fp:
         count = 0
         conf_items = fp.readlines()
-        for item in conf_items:
+        for item in conf_items: 
             if item.startswith(match_conf['ec']) :
                ktype = 'ec'
                count = count + 1
@@ -107,10 +107,10 @@ def kern_config_hash(kconfig):
     return khash,ktype
 
 #------------------------------------------------------------------------
-#
+# 
 # Update config with new keys if needed
 # Safest is to always read the current link and check config regardless if key was refreshed.
-#
+# 
 def update_config(conf):
 
     ok = True
@@ -189,7 +189,7 @@ def create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt) :
     verb = conf['verb']
     ok = True
     cmd = 'openssl req -new -nodes -utf8 -' + khash + ' -days ' + kvalid + ' -batch -x509 -config ' + kx509
-    cmd = cmd + ' -outform PEM' + ' -out ' + kkey + ' -keyout ' + kkey
+    cmd = cmd + ' -outform PEM' + ' -out ' + kkey + ' -keyout ' + kkey 
     if ktype == 'ec':
         cmd = cmd + ' -newkey ec -pkeyopt ec_paramgen_curve:secp384r1'
 
@@ -230,8 +230,8 @@ def create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt) :
 def make_new_keys (conf):
     ok = True
 
-    khash = conf['khash']
-    ktype = conf['ktype']
+    khash = conf['khash'] 
+    ktype = conf['ktype'] 
     now = date_time_now()
     now_str = now.strftime('%Y%m%d-%H%M')
 
@@ -239,7 +239,7 @@ def make_new_keys (conf):
     os.makedirs(kdir, exist_ok=True)
 
     kvalid = '36500'
-    kx509 = './x509.oot.genkey'
+    kx509 = './x509.oot.genkey' 
     kbasename = 'signing'
     kprv = os.path.join(kdir, kbasename + '_prv.pem')
     kkey = os.path.join(kdir, kbasename + '_key.pem')
@@ -280,29 +280,30 @@ def check_refresh(conf):
             units = parse[1]
         else:
             print ('Refresh error = missing units')
-            ok = False
+            return ok
     else:
         print ('Failed to parse refresh string')
-        ok = False
+        return ok
 
     kfile = os.path.join('current', 'signing_key.pem')
-    mod_time = os.path.getmtime(kfile)
-    curr_dt = datetime.datetime.fromtimestamp(mod_time)
+    if os.path.exists(kfile) :
+        mod_time = os.path.getmtime(kfile)
+        curr_dt = datetime.datetime.fromtimestamp(mod_time)
 
-    if units.startswith('s'):
-        next_dt = curr_dt + datetime.timedelta(seconds=freq)
-    elif units.startswith('m'):
-        next_dt = curr_dt + datetime.timedelta(minutes=freq)
-    elif units.startswith('h'):
-        next_dt = curr_dt + datetime.timedelta(hours=freq)
-    elif units.startswith('d'):
-        next_dt = curr_dt + datetime.timedelta(days=freq)
-    elif units.startswith('w'):
-        next_dt = curr_dt + datetime.timedelta(weeks=freq)
+        if units.startswith('s'):
+            next_dt = curr_dt + datetime.timedelta(seconds=freq)
+        elif units.startswith('m'):
+            next_dt = curr_dt + datetime.timedelta(minutes=freq)
+        elif units.startswith('h'):
+            next_dt = curr_dt + datetime.timedelta(hours=freq)
+        elif units.startswith('d'):
+            next_dt = curr_dt + datetime.timedelta(days=freq)
+        elif units.startswith('w'):
+            next_dt = curr_dt + datetime.timedelta(weeks=freq)
 
-    now = date_time_now()
-    if next_dt > now:
-        ok = False
+        now = date_time_now()
+        if next_dt > now:
+            ok = False
 
     return ok
 
