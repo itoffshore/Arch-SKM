@@ -48,6 +48,8 @@ prepare() {
 
   # NB: config path must be quoted for file globbing to work
   # some kernels have multiple config files (e.g linux-libre)
+  # to see configurable options run:
+  # /usr/src/certs-local/genkeys.py -h
   ./genkeys.py -v --config '../config*'
 
   cd ../$_srcname
