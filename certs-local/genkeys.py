@@ -54,7 +54,7 @@ def initialize() :
     ktype = 'ec'
 
     ap.add_argument('-r',  '--refresh', help='key refresh period (' + refresh + ') E.g. "7d", "24h", "always"')
-    ap.add_argument('-c',  '--config',  help='Kernel Config(s) to be updated (' + kconfig + ') - wildcards ok.')
+    ap.add_argument('-c',  '--config',  help='Kernel Config(s) to be updated (' + kconfig + ') - wildcards ok (please quote to avoid shell expansion).')
     ap.add_argument('-kh', '--khash',   help='Hash type (' + khash + ')')
     ap.add_argument('-kt', '--ktype',   help='Crypto algo (' + khash + ') - Must be either ec or rsa')
     ap.add_argument('-v',  '--verb', action='store_true', help='Verbose')
