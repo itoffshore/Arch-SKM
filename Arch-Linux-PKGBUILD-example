@@ -40,16 +40,15 @@ prepare() {
   # local _srcname=linux-${_major}
 
   msg2 "Rebuilding local signing key..."
+
   cp -rf /usr/src/certs-local ./
   cd certs-local
 
-  # some AUR kernels support 64bit / 32bit / armv7h
-  local arch=$(lscpu | grep ^Architecture | awk '{print $2}')
-  local config_file=$(find ../ -maxdepth 1 \
-    -regextype posix-extended -regex ".*config(.$arch)?")
-
   msg2 "Updating kernel config with new key..."
-  ./genkeys.py -v --config $config_file
+
+  # NB: config path must be quoted for file globbing to work
+  # some kernels have multiple config files (e.g linux-libre)
+  ./genkeys.py -v --config '../config*'
 
   cd ../$_srcname
 
@@ -62,7 +61,7 @@ build() {
   ....
   # see https://wiki.archlinux.org/index.php/Kernel/Arch_Build_System
   # 'Avoid creating the doc'
-  #make htmldocs
+  # make htmldocs
 }
 
 _package() {
@@ -106,5 +105,5 @@ _package-docs() {
 
 # see https://wiki.archlinux.org/index.php/Kernel/Arch_Build_System
 # 'Avoid creating the doc'
-#pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
+# pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
 pkgname=("$pkgbase" "$pkgbase-headers")
