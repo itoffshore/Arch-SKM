@@ -45,7 +45,7 @@ prepare() {
 
   # some AUR kernels support 64bit / 32bit / armv7h
   local arch=$(lscpu | grep ^Architecture | awk '{print $2}')
-  local config_file=$(find ../src -maxdepth 1 \
+  local config_file=$(find ../ -maxdepth 1 \
     -regextype posix-extended -regex ".*config(.$arch)?")
 
   msg2 "Updating kernel config with new key..."
@@ -89,12 +89,10 @@ _package-headers() {
   certs_local_src="../certs-local"
   certs_local_dst="${builddir}/certs-local"
 
-  signer="sign_manual.sh"
-  mkdir -p ${certs_local_dst}
-  rsync -aL $certs_local_src/current $certs_local_dst/
-  rsync -a $certs_local_src/{current,signer} $certs_local_dst/
+  # install certificates
+  ${certs_local_src}/install-certs.py $certs_local_dst
 
-  # DKMS tools
+  # install dkms tools
   dkms_src="$certs_local_src/dkms"
   dkms_dst="${pkgdir}/etc/dkms"
   mkdir -p $dkms_dst
