@@ -1,22 +1,22 @@
 #!/usr/bin/python
 #
 # Create new pub/priv key pair for signing out of tree kernel modules.
-# This program must reside in the certs-local dir but can be run from any directory. 
+# This program must reside in the certs-local dir but can be run from any directory.
 # It will use it's own path to locate the cert-local dir
 #
 # Each key pair is stored by date-time
-# 
+#
 # Args:
 #  refresh  - time before new keys are created. e.g. --refresh 24h
 #             default is 7days. Units may be abbreviateed and one of secs, mins, hours, days or weeks
 #  khash    - sets hash (default is sha512)
 #  ktype    - rsa or ec (default is ec)
-#  config   - config file to update with signing key. May contain wildcard 
+#  config   - config file to update with signing key. May contain wildcard
 #             e.g. --config config
 #                  --config ../configs/config.*
-# 
+#
 # (This tool replaces both of the older bash scripts:  genkeys.sh and fix_config.sh)
-# NB: 
+# NB:
 #   We always check the config - even if not refreshing keys to be sure it has the current signing key.
 #
 # Default refresh key is 7 days
@@ -70,10 +70,10 @@ def initialize() :
         ktype = parg.ktype
     if parg.verb:
         verb = parg.verb
-    
+
     kconfig_list = utils.file_list_glob(kconfig)
     if not kconfig_list or kconfig_list == []:
-        print ('No matching kernel config files found') 
+        print ('No matching kernel config files found')
         return None
 
     # read kernel config and check for EC in config
@@ -95,7 +95,7 @@ def initialize() :
 #
 # Check kernel config(s) :
 # The config(s) checked to ensure hash and key_type match whats expected
-# 
+#
 #   1) Get hash.
 #   2) Confirm EC is in config
 #
@@ -112,7 +112,7 @@ def check_kern_config(conf):
             }
 
     this_config_type = config[ktype]
-    to_match = {'ktype' : this_config_type, 
+    to_match = {'ktype' : this_config_type,
                 'khash'  : 'CONFIG_MODULE_SIG_HASH',
                }
     want_get = {'ktype' : 'y',
@@ -130,16 +130,16 @@ def check_kern_config(conf):
             conf_items = fp.readlines()
             fp.close ()
             count = 0
-            for item in conf_items: 
+            for item in conf_items:
                 for ckey, config_opt in to_match.items():
                     if item.startswith(config_opt):
                         count += + 1
-                        want = want_get[ckey] 
+                        want = want_get[ckey]
                         found = item.split('=')[1]
                         found = found.strip('"\n')
                         found = found.lower()
                         if found != want:
-                            print ('Bad ' + ckey + ' in ' + kconfig + ' Want ' + want + ' found ' + found) 
+                            print ('Bad ' + ckey + ' in ' + kconfig + ' Want ' + want + ' found ' + found)
                             num_with_errors += 1
 
                 if count >= num_to_match:
@@ -156,10 +156,10 @@ def check_kern_config(conf):
     return ok
 
 #------------------------------------------------------------------------
-# 
+#
 # Update config with new keys if needed
 # Safest is to always read the current link and check config regardless if key was refreshed.
-# 
+#
 def update_configs(conf):
 
     all_ok = True
@@ -185,7 +185,7 @@ def update_configs(conf):
         #
         # format to match RHS of kernel config file
         #
-        signing_key = '"' + signing_key + '"\n'         
+        signing_key = '"' + signing_key + '"\n'
     else:
         print ('Missing : ' + keycur)
         return not all_ok
@@ -227,7 +227,7 @@ def update_one_config(conf, kconfig_path, signing_key):
                 changed = False
                 break
             else:
-                new_row = conf_name + signing_key 
+                new_row = conf_name + signing_key
                 new_rows.append(new_row)
         else:
             new_rows.append(row)
@@ -255,7 +255,7 @@ def create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt) :
     verb = conf['verb']
     ok = True
     cmd = 'openssl req -new -nodes -utf8 -' + khash + ' -days ' + kvalid + ' -batch -x509 -config ' + kx509
-    cmd = cmd + ' -outform PEM' + ' -out ' + kkey + ' -keyout ' + kkey 
+    cmd = cmd + ' -outform PEM' + ' -out ' + kkey + ' -keyout ' + kkey
     if ktype == 'ec':
         cmd = cmd + ' -newkey ec -pkeyopt ec_paramgen_curve:secp384r1'
 
@@ -302,8 +302,8 @@ def make_new_keys (conf):
     if verb:
         print ('Making new keys ')
 
-    khash = conf['khash'] 
-    ktype = conf['ktype'] 
+    khash = conf['khash']
+    ktype = conf['ktype']
     now = utils.date_time_now()
     now_str = now.strftime('%Y%m%d-%H%M')
 
@@ -311,7 +311,7 @@ def make_new_keys (conf):
     os.makedirs(kdir, exist_ok=True)
 
     kvalid = '36500'
-    kx509 =  os.path.join(cert_dir, 'x509.oot.genkey') 
+    kx509 =  os.path.join(cert_dir, 'x509.oot.genkey')
     kbasename = 'signing'
     kprv = os.path.join(kdir, kbasename + '_prv.pem')
     kkey = os.path.join(kdir, kbasename + '_key.pem')
@@ -322,7 +322,7 @@ def make_new_keys (conf):
         return
 
     # update current link to new kdir
-    # since the 'current' link and the actual keydir are in same dir we use 
+    # since the 'current' link and the actual keydir are in same dir we use
     # relative for link - safest in case certs-local is moved
     if ok:
         link_temp = str(uuid.uuid4())

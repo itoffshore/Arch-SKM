@@ -39,5 +39,5 @@ def date_time_now() :
 def file_list_glob(pathname) :
 
     flist = glob.glob(pathname, recursive=False)
-    
+
     return flist

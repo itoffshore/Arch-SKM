@@ -9,7 +9,7 @@
 # Takes 1 Argument which is the destination directory
 # Must reside in same certs-local directory with key/certs.
 #
-# To be used in PKGBUILD 
+# To be used in PKGBUILD
 #
 # The destination directory will be created if it doesn't exist
 #
@@ -18,17 +18,17 @@
 import os
 import sys
 
-import utils 
+import utils
 
 #
 # Extract self dir and dest dir
 #
 def _parse_args(av):
-    
+
     err = None
     src_dir = None
     dst_dir = None
-    # check dest dir 
+    # check dest dir
     if len(av) < 2:
         err = 'Missing destination dir'
 
@@ -64,7 +64,7 @@ def main():
     if not dst_dir:
         return
 
-    cur_path = os.path.join(src_dir, 'current') 
+    cur_path = os.path.join(src_dir, 'current')
     key_dir = os.readlink(cur_path)
     key_dir = os.path.join(src_dir, key_dir)
     key_dir = os.path.abspath(key_dir)
@@ -79,7 +79,7 @@ def main():
     ok = _run_prog_verb(cmd)
     if not ok:
         return
-    
+
     return
 
 
@@ -87,4 +87,3 @@ def main():
 if __name__ == '__main__':
     main()
 # ----------------------------
-
