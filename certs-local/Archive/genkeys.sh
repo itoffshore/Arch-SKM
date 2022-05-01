@@ -16,10 +16,10 @@ KernCrt="${Dt}/signing_crt.crt"
 #
 # kernel config must have :
 # CONFIG_MODULE_SIG_KEY_TYPE_ECDSA=y
-# CONFIG_MODULE_SIG_HASH="sha512"        
+# CONFIG_MODULE_SIG_HASH="sha512"
 #  script greps hash type from ../config but you can also hard code to be consistent
 #
-#hash="sha512"           
+#hash="sha512"
 hash=$(grep CONFIG_MODULE_SIG_HASH ../config | sed -e 's/CONFIG_MODULE_SIG_HASH="//' -e 's/"//g')
 
 #

@@ -2,7 +2,7 @@
 #
 # Out of Tree Module Sign script:
 #
-# This will be installed in 
+# This will be installed in
 #
 # /usr/lib/modules/<kernel-vers>/build/certs-local
 #
@@ -10,7 +10,7 @@
 #    Tmp   - working directory
 #
 # Requires: bash,  rsync, hexdump, zstd, xz
-# 
+#
 # Ensures that signing is idempotent.
 #
 
@@ -21,7 +21,7 @@ HASH=sha512
 Modules="$@"
 
 #
-# Where 
+# Where
 #
 MyRealpath=$(realpath $0)
 MyDirName=$(dirname $MyRealpath)
@@ -37,7 +37,7 @@ CRT=${MyDirName}/current/signing_crt.crt
 
 
 #
-# Sign them 
+# Sign them
 #
 echo "Module signing key : $KEY"
 
@@ -49,7 +49,7 @@ function is_signed () {
      hexdump --e '"%_p"' $f |tail  |grep 'Module sign' > /dev/null
      rc=$?
      if [ $rc = 0 ] ; then
-         has_sig='y' 
+         has_sig='y'
      fi
      echo $has_sig
 }
@@ -60,7 +60,7 @@ function is_signed () {
 for mod in $Modules
 do
 
-    moddir=$(dirname $mod) 
+    moddir=$(dirname $mod)
 
     if [ "$moddir" = "." ] ; then
         moddir="./"
@@ -137,8 +137,4 @@ do
 
 done
 
-exit 
-
-
-
-
+exit
