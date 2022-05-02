@@ -16,7 +16,7 @@ Edit to suit your `local` environment.
 Usage: abk [OPTIONS]
 	[ -u ] : update [ kernel-name ]
 	[ -b ] : build [ kernel-name ]
-	[ -i ] : install [ kernel-name ]
+	[ -i ] : install [ kernel-name / AUR pkgname ]
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
 	[ -s ] : clean makepkg source dir selectively ( $SRCDEST )
 	[ -l ] : clean makepkg log dir selectively ( $LOGDEST )
@@ -29,6 +29,10 @@ Run the following 3 commands in sequence with a kernel variant to build a signed
  abk -u linux-hardened
  abk -b linux-hardened
  abk -i linux-hardened
+ 
+ The -i option can also print a menu with version choices for any manually built package e.g:
+ --------------------------------------------------------------------------------------------
+ abk -i AUR-pkgname
 
 Utilities:
 -----------------------------------------------------
