@@ -46,7 +46,7 @@ function is_signed () {
      f=$1
      has_sig='n'
      #hexdump -C $f |tail  |grep 'Module sign' > /dev/null
-     hexdump --e '"%_p"' $f |tail  |grep 'Module sign' > /dev/null
+     hexdump -e '"%_p"' $f |tail  |grep 'Module sign' > /dev/null
      rc=$?
      if [ $rc = 0 ] ; then
          has_sig='y'
