@@ -30,8 +30,8 @@ Run the following 3 commands in sequence with a kernel variant to build a signed
  abk -b linux-hardened
  abk -i linux-hardened
  
- The -i option can also print a menu with version choices for any manually built package e.g:
- --------------------------------------------------------------------------------------------
+The -i option can also print a menu with version choices for any manually built package e.g:
+--------------------------------------------------------------------------------------------
  abk -i AUR-pkgname
 
 Utilities:
