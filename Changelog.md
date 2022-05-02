@@ -1,3 +1,23 @@
+Version [0.3]                                                       - 20220502
+ - abk convenience function: print a menu / install previously built AUR packages
+
+   e.g 'abk -i zoom'
+
+ - Gene's new python scripts from his 1.2.0 release:
+
+   https://github.com/gene-git/Arch-SKM
+
+   * genkeys.py
+   * install-certs.py
+
+   * genkeys.py now automatically regenerates kernel signing keys every 7 days by default.
+
+   NB: for file globbing to work with wildcards the path must be quoted:
+
+   genkeys.py --config '../config*'
+
+   * install-certs.py kindly makes the required PKGBUILD configuration simpler.
+
 Version [0.2.62]                                                    - 20210906
  - Add print_warnings() to selectively print build log warnings & errors
  - Remove unused $pkgbuild from install_kernel() & add detection for non existent
