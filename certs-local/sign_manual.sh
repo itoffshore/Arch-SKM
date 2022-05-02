@@ -9,11 +9,10 @@
 #  Uses dirs :
 #    Tmp   - working directory
 #
-# Requires:
+# Requires: bash,  rsync, hexdump, zstd, xz
 #
-# Ensure that signing is idempotent.
+# Ensures that signing is idempotent.
 #
-# Gene 20191110
 
 #
 # Inputs
@@ -46,7 +45,8 @@ echo "Module signing key : $KEY"
 function is_signed () {
      f=$1
      has_sig='n'
-     hexdump -C $f |tail  |grep 'Module sign' > /dev/null
+     #hexdump -C $f |tail  |grep 'Module sign' > /dev/null
+     hexdump --e '"%_p"' $f |tail  |grep 'Module sign' > /dev/null
      rc=$?
      if [ $rc = 0 ] ; then
          has_sig='y'
@@ -82,24 +82,27 @@ do
 
     ext=${mod##*.}
     isxz='n'
+    iszst='n'
+    isgz='n'
+
     if [ "$ext" = "xz" ] ; then
         echo "Decompressing xz:"
         isxz='y'
         xz -f --decompress $mod_tmp
         mod_tmp=${mod_tmp%*.xz}
     fi
-    iszst='n'
+
     if [ "$ext" = "zst" ] ; then
         echo "Decompressing zst:"
         iszst='y'
-        zstd -dfq $mod_tmp
+        zstd -f --decompress $mod_tmp
         mod_tmp=${mod_tmp%*.zst}
     fi
-    isgz='n'
+
     if [ "$ext" = "gz" ] ; then
         echo "Decompressing gz:"
         isgz='y'
-        gzip -d $mod_tmp
+        gzip --decompress $mod_tmp
         mod_tmp=${mod_tmp%*.gz}
     fi
 
@@ -116,14 +119,21 @@ do
     $SIGN  sha512 $KEY $CRT $mod_tmp
 
     if [ "$isxz" = "y" ] ; then
-        echo "Compressing:"
+        echo "Compressing xz:"
         xz -f $mod_tmp
         mod_tmp=${mod_tmp}.xz
     fi
+
     if [ "$iszst" = "y" ] ; then
-        echo "Compressing:"
-        zstd -fq $mod_tmp
+        echo "Compressing zst:"
+        zstd -f $mod_tmp
         mod_tmp=${mod_tmp}.zst
+    fi
+
+    if [ "$isgz" = "y" ] ; then
+        echo "Compressing gz:"
+        gzip -f $mod_tmp
+        mod_tmp=${mod_tmp}.gz
     fi
 
     #
