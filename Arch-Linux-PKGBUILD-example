@@ -63,6 +63,7 @@ build() {
   ....
   # see https://wiki.archlinux.org/index.php/Kernel/Arch_Build_System
   # 'Avoid creating the doc'
+  # texlive-latexextra can also be removed from $makedepends
   # make htmldocs
 }
 
