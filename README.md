@@ -302,10 +302,11 @@ the updated `.config` file back to the build file `config`.
 
 ---
 
-These are the 5 supporting files referenced above. 
+These are the 6 supporting files referenced above. 
 ```
-* certs-local/x509.oot.genkey
 * certs-local/genkeys.py
+* certs-local/install-certs.py
+* certs-local/x509.oot.genkey
 * certs-local/sign_manual.sh
 * certs-local/dkms/kernel-sign.conf
 * certs-local/dkms/kernel-sign.sh
