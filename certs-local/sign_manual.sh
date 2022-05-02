@@ -82,20 +82,28 @@ do
 
     ext=${mod##*.}
     isxz='n'
-    iszstd='n'
+    iszst='n'
+    isgz='n'
 
     if [ "$ext" = "xz" ] ; then
-        echo "Decompressing :"
+        echo "Decompressing xz:"
         isxz='y'
         xz -f --decompress $mod_tmp
         mod_tmp=${mod_tmp%*.xz}
     fi
 
-    if [ "$ext" = "zstd" ] ; then
-        echo "Decompressing :"
-        iszstd='y'
+    if [ "$ext" = "zst" ] ; then
+        echo "Decompressing zst:"
+        iszst='y'
         zstd -f --decompress $mod_tmp
-        mod_tmp=${mod_tmp%*.zstd}
+        mod_tmp=${mod_tmp%*.zst}
+    fi
+
+    if [ "$ext" = "gz" ] ; then
+        echo "Decompressing gz:"
+        isgz='y'
+        gzip --decompress $mod_tmp
+        mod_tmp=${mod_tmp%*.gz}
     fi
 
     #
@@ -111,17 +119,22 @@ do
     $SIGN  sha512 $KEY $CRT $mod_tmp
 
     if [ "$isxz" = "y" ] ; then
-        echo "Compressing:"
+        echo "Compressing xz:"
         xz -f $mod_tmp
         mod_tmp=${mod_tmp}.xz
     fi
 
-    if [ "$iszstd" = "y" ] ; then
-        echo "Compressing:"
+    if [ "$iszst" = "y" ] ; then
+        echo "Compressing zst:"
         zstd -f $mod_tmp
-        mod_tmp=${mod_tmp}.zstd
+        mod_tmp=${mod_tmp}.zst
     fi
 
+    if [ "$isgz" = "y" ] ; then
+        echo "Compressing gz:"
+        gzip -f $mod_tmp
+        mod_tmp=${mod_tmp}.gz
+    fi
 
     #
     # backup current and install newly signed module
