@@ -14,7 +14,7 @@ if [ -f $SIGN ] ;then
 
    list=$(/bin/ls -1 *.ko 2>/dev/null)
    listxz=$(/bin/ls -1 *.ko.xz  2>/dev/null)
-   listzstd=$(/bin/ls -1 *.ko.zst 2>/dev/null)
+   listzst=$(/bin/ls -1 *.ko.zst 2>/dev/null)
    listgz=$(/bin/ls -1 *.ko.gz 2>/dev/null)
 
    if [ "$list" != "" ]  ; then
@@ -25,8 +25,8 @@ if [ -f $SIGN ] ;then
        done
    fi
 
-   if [ "$listzstd" != "" ]  ; then
-       for mod in $listzstd
+   if [ "$listzst" != "" ]  ; then
+       for mod in $listzst
        do
            echo "DKMS: Signing kernel ($kernelver) module: $mod"
            modunc=${mod%.zst}
@@ -58,7 +58,7 @@ if [ -f $SIGN ] ;then
            modunc=${mod%.gz}
            gzip -d $mod
            $SIGN "$modunc"
-           echo "    : compress gz ($kernelver) module: $modunc"
+           echo "    : compress gzip ($kernelver) module: $modunc"
            gzip -f $modunc
            rm -f $modunc
        done
