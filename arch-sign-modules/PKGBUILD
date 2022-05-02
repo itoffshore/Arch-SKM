@@ -12,7 +12,7 @@ optdepends=('pacman-contrib')
 makedepends=()
 install="$pkgname.install"
 source=($pkgname-$pkgver.tar.gz::https://github.com/itoffshore/$_pkgname/archive/$pkgver.tar.gz)
-md5sums=('ffcd449f79a29a6209764617e0c9c3bf')
+md5sums=('83bbd42dac189198b50db3f49c30c98c')
 
 build() {
   return 0
@@ -21,7 +21,7 @@ build() {
 package() {
   cd "$srcdir/$_pkgname-$pkgver"
   mkdir -p $pkgdir/usr/{src,bin,share/$pkgname}
-  
+
   cp -rf certs-local $pkgdir/usr/src/
   cp scripts/* $pkgdir/usr/bin/
   cp Arch-Linux-PKGBUILD-example $pkgdir/usr/share/$pkgname/PKGBUILD.example
