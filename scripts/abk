@@ -60,6 +60,9 @@ Run the following 3 commands in sequence with a kernel variant to build a signed
  $script -u linux-hardened
  $script -b linux-hardened
  $script -i linux-hardened
+
+The -i option can also print a menu with version choices for any manually built package e.g:
+--------------------------------------------------------------------------------------------
  $script -i AUR-pkgname
 
 Utilities:
