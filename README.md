@@ -22,9 +22,20 @@ With **DKMS** support for the following _Out of Tree_ Kernel Modules:
 
 ---
 
+This AUR Package [arch-sign-modules](https://aur.archlinux.org/packages/arch-sign-modules/) is based on the [original manual steps set out below](https://github.com/gene-git/Arch-SKM).
+
+It reduces the manual steps for building a fully signed custom kernel to 3 commands to *Update* / *Build* & *Install* the kernel:
+```
+abk -u kernel-name
+abk -b kernel-name
+abk -i kernel-name
+```
+
 * [README.scripts.md](https://github.com/itoffshore/Arch-SKM/blob/master/README.scripts.md)
 
-This AUR Package [arch-sign-modules](https://aur.archlinux.org/packages/arch-sign-modules/) is based on the [original manual steps set out below:](https://github.com/gene-git/Arch-SKM)
+In the first step above of the build process the following `PKGBUILD` example opens in your configured `GUI_EDITOR` & `CONSOLE_EDITOR` simultaneously for configuration:
+
+* [PKGBUILD example](https://github.com/itoffshore/Arch-SKM/blob/master/Arch-Linux-PKGBUILD-example)
 
 ---
 
@@ -48,13 +59,12 @@ This provides the tools needed to build a kernel with support for signed modules
     6 Modify PKGBUILD
         6.1 prepare()
         6.2 _package-headers()
-    7 Files Required
-        7.1 certs-local/fix_config.sh
-        7.2 certs-local/x509.oot.genkey
-        7.3 certs-local/genkeys.sh
-        7.4 certs-local/sign_manual.sh
-        7.5 certs-local/dkms/kernel-sign.conf
-        7.6 certs-local/dkms/kernel-sign.sh
+    7 Files Required       
+        7.1 certs-local/x509.oot.genkey
+        7.2 certs-local/genkeys.py
+        7.3 certs-local/sign_manual.sh
+        7.4 certs-local/dkms/kernel-sign.conf
+        7.5 certs-local/dkms/kernel-sign.sh
 
 * https://www.kernel.org/doc/html/v5.13/admin-guide/module-signing.html
 * https://wiki.archlinux.org/index.php/Kernel_modules
@@ -165,7 +175,7 @@ the updated `.config` file back to the build file `config`.
   Which hash algorithm    -> SHA-512
 
   Compress modules on installation        - activate
-        Compression algorithm (XZ)
+        Compression algorithm (zstd)
   ```
 
   Allow loading of modules with missing namespace imports - set to no
@@ -199,24 +209,31 @@ the updated `.config` file back to the build file `config`.
 
   Put the 4 files into `certs-local`:
   ```
-
-    fix_config.sh
-    x509.oot.genkey
-    genkeys.sh
-    sign_manual.sh
+  genkeys.py
+  x509.oot.genkey
+  install-certs.py
+  sign_manual.sh
   ```
 
-  The files `genkeys.sh` and its config `x509.oot.genkey` are used to create key pairs.
+  The files `genkeys.py` and its config `x509.oot.genkey` are used to create key pairs. 
+  
+  It also provides the kernel with the key to sign the out of tree modules by updating the config file used to build the kernel.
 
-  The file `fix_config.sh` is run after that to provide the kernel with the key info by 
-  updating the config file used to build the kernel.
+  The script `sign_manual.sh` is used to sign out of tree kernel modules by hand.
+  
+  `genkeys.py` will create the key pairs in a directory named by date-time. It defaults to refreshing the keys every 7 days but 
+  this can be changed with a command line option.
 
-  The script `sign_manual.sh` will be used to sign out of tree kernel modules.
+  It also creates a soft link named 'current' which points to the newly created directory with the 'current' keys. 
+  
+  The actual key directory is named by date and time.
 
-  `genkeys.sh` will create the key pairs in a directory named by date-time.
+  `genkeys.py` will check and update kernel configs given by the `--config config(s)` option. This takes either a single config file,
+  or a shell glob for mulitple files. e.g. `--config 'conf/config.*'`. All configs will be updated with the same key. The default 
+  keytype is ec (elliptic curve) and the default hash is sha512. These can be changed with command line options. See `genkeys.py -h`
+  for more details.
 
-  It also creates file `current_key_dir` with that directory name and a soft link `current` 
-  to the same directory with the `current` key pairs.
+  `install-certs.py` is to be called from the `package_headers()` function of a `PKGBUILD` to install the signing keys. 
 
   These files are all provided.
 
@@ -225,15 +242,17 @@ the updated `.config` file back to the build file `config`.
   ####     5.2 DKMS support
   
   ---
-
-  `mkdir certs-local/dkms`
+  
+  ```
+  mkdir certs-local/dkms
+  ```
 
   Add 2 files to the dkms dir:
-
-    kernel-sign.conf
-    kernel-sign.sh
-
-  These will be installed in /etc/dkms and provide a mechanism for dkms to automatically sign 
+  ```
+  kernel-sign.conf
+  kernel-sign.sh
+  ```
+  These will be installed in `/etc/dkms` and provide a mechanism for dkms to automatically sign 
   modules (using the local key above) - this is the reccommended way to sign kernel modules. 
   As explained, below - once this is installed - all that is needed to have dkms automatically 
   sign modules is to make a soft link:
@@ -252,76 +271,44 @@ the updated `.config` file back to the build file `config`.
 
 ####     6. Modify PKGBUILD
 
+
+ * Instructions for using the `arch-sign-modules` helper script `abk`:
+  
+ * https://github.com/itoffshore/Arch-SKM/blob/master/README.scripts.md
+
 ---
 
 ####    6.1 prepare()
 
 ---
 
-  Add the following to the top of the prepare() function:
+  * Add the following to the *top* of the `prepare()` function:
   
-```
-  prepare() {
-
-      msg2 "Rebuilding local signing key..."
-      cd ../certs-local
-      ./genkeys.sh 
-
-      msg2 "Updating kernel config with new key..."
-      ./fix_config.sh ../config
-      cd ../src
-
-      ... 
-  }
-  ```
+  * [PKGBUILD example](https://github.com/itoffshore/Arch-SKM/blob/master/Arch-Linux-PKGBUILD-example)
+  
   ---
 
   ####     6.2 _package-headers() 
   
   ---
 
-  Add the following to the bottom of the `_package-headers()` function:
+  * Add the following to the *bottom* of the `_package-headers()` function:
+    
+  * [PKGBUILD example](https://github.com/itoffshore/Arch-SKM/blob/master/Arch-Linux-PKGBUILD-example)
   
-  ```
-  _package-headers() {
-
-      ...
-
-      #
-      # Out of Tree Module signing
-      # This is run in the kernel source / build directory
-      #
-      msg2 "Local Signing certs for out of tree modules..."
-
-      certs_local_src="../../certs-local" 
-      key_dir=$(<${certs_local_src}/current_key_dir)
-
-      certs_local_dst="${builddir}/certs-local"
-      signer="sign_manual.sh"
-      mkdir -p ${certs_local_dst}
-      rsync -a $certs_local_src/{current,$key_dir,$signer} $certs_local_dst/
-
-      # dkms tools
-      dkms_src="$certs_local_src/dkms"
-      dkms_dst="${pkgdir}/etc/dkms"
-      mkdir -p $dkms_dst
-
-      rsync -a $dkms_src/{kernel-sign.conf,kernel-sign.sh} $dkms_dst/
-  }
-  ```
   ---
 
 ####     7. Files Required
 
 ---
 
-These are the 6 supporting files referenced above. 
-
-* certs-local/fix_config.sh
+These are the 5 supporting files referenced above. 
+```
 * certs-local/x509.oot.genkey
-* certs-local/genkeys.sh
+* certs-local/genkeys.py
 * certs-local/sign_manual.sh
 * certs-local/dkms/kernel-sign.conf
 * certs-local/dkms/kernel-sign.sh
+```
 
-:exclamation: Do not forget to make the scripts **executable** with `chmod +x certs-local/*.sh` :exclamation:
+:exclamation: Do not forget to make the scripts **executable** with `chmod +x certs-local/*.{sh,py}` :exclamation:
