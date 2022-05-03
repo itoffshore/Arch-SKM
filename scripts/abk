@@ -6,7 +6,7 @@
 # --------------------------------------
 # https://github.com/itoffshore/Arch-SKM
 #
-# Stuart Cardall 20210914
+# Stuart Cardall 20220503
 #
 ############################################
 ## USER configuration ######################
@@ -16,8 +16,9 @@ BUILD_DIR=~/build
 GUI_EDITOR=mousepad
 CONSOLE_EDITOR=nano
 MAIN_KERNELS="linux linux-hardened linux-lts linux-zen"
-AUR_KERNELS="linux-hardened-cacule linux-xanmod-cacule linux-ck linux-zen-lts510 linux-libre"
+AUR_KERNELS="linux-hardened-cacule linux-xanmod-cacule linux-ck linux-libre"
 MAKEPKG_DIR=/tmp/makepkg
+AUTOMATED="N"
 ## custom USER VARS are sourced
 #################################
 USER_CONFIG=~/.config/abk.conf ##
@@ -40,6 +41,7 @@ CONSOLE_EDITOR=$CONSOLE_EDITOR
 MAIN_KERNELS=$MAIN_KERNELS
 AUR_KERNELS=$AUR_KERNELS
 MAKEPKG_DIR=$MAKEPKG_DIR
+AUTOMATED=Y
 
 Edit to suit your local environment.
 ------------------------------------
@@ -48,6 +50,7 @@ Usage: $script [OPTIONS]
 	[ -u ] : update [ kernel-name ]
 	[ -b ] : build [ kernel-name ]
 	[ -i ] : install [ kernel-name / AUR pkgname ]
+	[ -y ] : yes ( assume YES answers during build stage )
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
 	[ -s ] : clean makepkg source dir selectively ( $(parse_makepkg SRCDEST) )
 	[ -l ] : clean makepkg log dir selectively ( $(parse_makepkg LOGDEST) )
@@ -65,6 +68,12 @@ The -i option can also print a menu with version choices for any manually built 
 --------------------------------------------------------------------------------------------
  $script -i AUR-pkgname
 
+The build stage can assume YES for running automated
+----------------------------------------------------
+ $script -y -b linux-hardened
+
+Automated mode can also be enabled by adding AUTOMATED=Y to your ~/.config/abk.conf
+
 Utilities:
 --------------------------
  $script -c /path/to/somewhere
@@ -79,8 +88,16 @@ EOF
 
 check_kernel() {
 	local calling_fn=$1
-	# sets global vars $REPO $KBUILD_DIR after cmdline parsed
 
+	# sets global vars $REPO $KBUILD_DIR after cmdline parsed
+	KBUILD_DIR=${BUILD_DIR}/${KERNEL}
+
+	# build checks
+	if [ "$calling_fn" == "build" ] && [ ! -d $KBUILD_DIR ]; then
+		error "No config to build kernel '$KERNEL' => update step not run ?"; die
+	fi
+
+	# install checks
 	if [ "$calling_fn" != "install" ]; then
 		if echo "$MAIN_KERNELS" | grep -qw "$KERNEL"; then
 			REPO='main'
@@ -88,13 +105,11 @@ check_kernel() {
 			REPO='aur'
 		else
 
-			printf "WARN: add '$KERNEL' to AUR_KERNELS in: $USER_CONFIG\n"
-			printf "assuming '$KERNEL' is from AUR\n\n"
+			warning "Add '$KERNEL' to AUR_KERNELS in: $USER_CONFIG"
+			msg2 "Assuming '$KERNEL' is from AUR\n"
 			REPO='aur'
 		fi
 	fi
-
-	KBUILD_DIR=${BUILD_DIR}/${KERNEL}
 }
 
 check_config() {
@@ -104,7 +119,7 @@ check_config() {
 	if [ ! -d $BUILD_DIR ]; then
 		mkdir -p $BUILD_DIR 2>/dev/null
 		if [ $? != 0 ]; then
-			die "Error: PKGBUILD configuration directory: '$BUILD_DIR' cannot be created."
+			error "PKGBUILD configuration directory: '$BUILD_DIR' cannot be created."; die
 		fi
 	fi
 
@@ -112,8 +127,8 @@ check_config() {
 	if [[ ! $DISPLAY && $XDG_VTNR -le 3 ]]; then
 		for x in $GUI_EDITOR $CONSOLE_EDITOR; do
 			if ! type "$x" &> /dev/null; then
-				printf "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')\n"
-				die "See also: $README"
+				error "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')"
+				error "See also: $README"; die
 			fi
 		done
 	fi
@@ -150,12 +165,12 @@ check_compress() {
 
 	else	if [ "$REPO" = "aur" ]; then
 			# linux-xanmod-cacule generates kernel config during prepare()
-			printf "Missing kernel config cannot reconfigure module compression\n"
-			read -p "some $REPO kernels make use of modprobed-db in prepare() [ENTER]" ans
+			warning "Missing kernel config cannot reconfigure module compression"
+			warning "Some $REPO kernels make use of modprobed-db in prepare() <ENTER>"; read ans
 			return
 		else	# Officially supported kernels ship a kernel config so quit
-			printf "no kernel config in: $KBUILD_DIR => cannot reconfigure module compression\n"
-			die "did you run 'abk -u kernel-variant' first ?"
+			warning "No kernel config in: $KBUILD_DIR: cannot reconfigure module compression"
+			error "Did you run 'abk -u kernel-variant' first ?"; die
 		fi
 	fi
 
@@ -166,22 +181,25 @@ check_compress() {
 		algo_detect=false
 	fi
 
-	read -p "Change current module compression: '$algo' ? [y/N] : " ans
+	ask "Change current module compression: '$algo' ? [y/N] : "; read ans
 
 	if [ "$ans" = "y" ] || [ "$ans" = "Y" ]; then
+		echo
+
 		# print compression menu
 		for x in $algo_list; do
 			ctr=$(( ctr +1 ))
-			echo "$ctr) : $x"
+			plain "$ctr) : $x"
 		done
 
 		ans=0
+		echo
 
 		# read choice
 		while [ $ans  -lt 1 ] || [ $ans -gt $ctr ]; do
-			printf "\nChoose compression [ 1 - $ctr ] : "; read ans
+			ask "Choose compression [1 - $ctr] : "; read ans
 			ans=$(echo $ans | tr -cd [:digit:])
-			if [ -z $ans ]; then read -p "Compression unchanged <ENTER>" ans; return; fi
+			if [ -z $ans ]; then echo; warning "Compression unchanged"; return; fi
 			choice=$(echo $algo_list | awk -v var="$ans" '{print $var}')
 		done
 
@@ -196,12 +214,12 @@ check_compress() {
 			# set new compression
 			sed -i "s|.*$config_str.*|$config_str=y|" $config
 		else
-			read -p "existing compression chosen: not reconfiguring <ENTER>"
+			warning "Existing compression chosen: not reconfiguring <ENTER>"; read ans
 		fi
 	else
 		# nothing chosen
 		compression=$(grep -hE ^CONFIG_MODULE_COMPRESS_[A-Z]+=y $config)
-		read -p "Module compression unchanged as: $compression <ENTER>" ans
+		msg "Module compression unchanged as: $compression"
 	fi
 }
 
@@ -217,7 +235,7 @@ archive_config() {
 
 	# create archive
 	if [ -d $KERNEL ]; then
-		printf "Backing up: $KBUILD_DIR => $BUILD_DIR/$archive\n"
+		msg "Backing up: $KBUILD_DIR => $BUILD_DIR/$archive"
 		tar -cJf $archive -C $BUILD_DIR $KERNEL
 	fi
 }
@@ -226,23 +244,23 @@ remove_old_pkgs() {
 	local pkgdir=$(parse_makepkg PKGDEST) target= keep= ans=
 
 	if [ -x $(which paccache) ]; then
-		printf "Preparing to clean old packages in: $pkgdir\n\n"
-		read -p "Enter number of packages to keep ? [ default: 3] : " ans
+		msg "Preparing to clean old packages in: $pkgdir\n"
+		ask "Enter number of packages to keep ? [ default: 3 ] : "; read ans
 		keep=$(echo $ans | tr -cd "[:digit:]")
 
 		if [ -z "$keep" ] || [ "$keep" -lt 1 ]; then
 			keep=3
 		fi
 
-		read -p "Enter optional package target ? [ default: all ] : " target
-		read -p "Remove packages ? [y/N] [ default: --dry-run ] : " ans; echo
+		ask "Enter optional package target ? [ default: all ] : "; read target
+		ask "Remove packages ? [y/N] [ default: --dry-run ] : "; read ans; echo
 
 		case "$ans" in
 			y|Y) paccache -rvk${keep} -c $pkgdir $target ;;
 			  *) paccache -dvk${keep} -c $pkgdir $target ;;
 		esac
 	else
-		printf "Install optional depends pacman-contrib for option -o to work.\n"
+		warning "Install optional depends pacman-contrib for option -o to work."
 	fi
 }
 
@@ -261,7 +279,7 @@ print_warnings() {
 			echo "$kern_ctr) : $(basename $log)" >> $tmp
 		done
 	else
-		die "No logs found for kernel: $KERNEL"
+		error "No logs found for kernel: $KERNEL"; die
 	fi
 
 	# read choice
@@ -270,9 +288,9 @@ print_warnings() {
 		ans=0
 
 		while [ $ans  -lt 1 ] || [ $ans -gt $kern_ctr ]; do
-			printf "\nChoose kernel build log to parse for warnings [1 - $kern_ctr] : "; read ans; echo
+			echo; ask "Choose kernel build log to parse for warnings [1 - $kern_ctr] : "; read ans; echo
 			ans=$(echo $ans | tr -cd [:digit:])
-			if [ -z $ans ]; then die "No kernel build log chosen quitting."; fi
+			if [ -z $ans ]; then warning "No kernel build log chosen quitting."; die; fi
 
 			kernel_log=$(echo $kern_log_list | awk -v var="$ans" '{print $var}')
 		done
@@ -280,7 +298,7 @@ print_warnings() {
 		kernel_log=$kern_log_list
 	fi
 
-	printf "Warnings & errors from: $kernel_log\n\n"
+	msg "Warnings & errors from: $kernel_log\n"
 	# parse log excluding error named object files & parse again for coloured grep
 	grep -vE \/.*error.*.o$ $kernel_log | grep --colour=auto -iE "(warning|error)"
 }
@@ -302,25 +320,26 @@ install_kernel() {
 		      *) pkgtype='package' ;;
 	esac
 
-	# print kernel menu
+	# print kernel / AUR package menu
 	if [ -n "$kern_list" ]; then
+		echo
 		for pkg in $kern_list; do
 			kern_ctr=$(( kern_ctr +1 ))
-			echo "$kern_ctr) : $(basename $pkg)" >> $tmp
+			plain "$kern_ctr) : $(basename $pkg)"
 		done
 	else
-		die "No installable ${pkgtype}s found for: $KERNEL"
+		error "No installable ${pkgtype}s found for: $KERNEL"; die
 	fi
 
 	# read choice
 	if [ $kern_ctr -gt 1 ]; then
-		cat $tmp; rm -f $tmp
 		ans=0
+		echo
 
 		while [ $ans  -lt 1 ] || [ $ans -gt $kern_ctr ]; do
-			printf "\nChoose $pkgtype to install [1 - $kern_ctr] : "; read ans; echo
+			ask "Choose $pkgtype to install [1 - $kern_ctr] : "; read ans
 			ans=$(echo $ans | tr -cd [:digit:])
-			if [ -z $ans ]; then die "No $pkgtype chosen: quitting."; fi
+			if [ -z $ans ]; then echo; warning "No $pkgtype chosen: quitting."; die; fi
 
 			kernel_install=$(echo $kern_list | awk -v var="$ans" '{print $var}')
 			header_install=$(echo $header_list | awk -v var="$ans" '{print $var}')
@@ -330,17 +349,19 @@ install_kernel() {
 		header_install=$header_list
 	fi
 
+	echo
+
 	# overwrite required for multiple signed kernels
 	sudo pacman -U $kernel_install $header_install --overwrite ${ksign}.conf --overwrite ${ksign}.sh
 }
 
 update_kernel() {
 	local kernel_repo=$1 git_retval=
-	local err_msg="Error: retrieving '$KERNEL' PKGBUILD failed."
+	local err_msg="Retrieving '$KERNEL' PKGBUILD failed."
 
 	if [ ! -d $BUILD_DIR ]; then
-		printf "creating: $BUILD_DIR\n"
-		mkdir -p $BUILD_DIR || die "Error: cannot create: $BUILD_DIR"
+		msg "Creating: $BUILD_DIR"
+		mkdir -p $BUILD_DIR || error "Cannot create: $BUILD_DIR"; die
 	fi
 
 	cd $BUILD_DIR
@@ -353,18 +374,18 @@ update_kernel() {
 
 	# download PKGBUILD
 	if [ "$kernel_repo" = "main" ]; then
-		asp update $KERNEL || die "$err_msg" $KBUILD_DIR
+		asp update $KERNEL || error "$err_msg"; die $KBUILD_DIR
 		asp export $KERNEL
 	elif [ "$kernel_repo" = "aur" ]; then
 		git clone https://aur.archlinux.org/$KERNEL.git
 		git_retval=$?
 
 		case "$git_retval" in
-		      128) die "$err_msg" $KBUILD_DIR ;;
+		      128) error "$err_msg"; die $KBUILD_DIR ;;
 			0) if [ ! -f $KBUILD_DIR/PKGBUILD ]; then
-				die "Error: non existent AUR kernel" $KBUILD_DIR
+				error "Non existent AUR kernel"; die $KBUILD_DIR
 			   fi ;;
-			*) die "untrapped git_retval: $git_retval" ;;
+			*) warning "Untrapped git_retval: $git_retval"; die ;;
 		esac
 	fi
 
@@ -382,25 +403,34 @@ build_kernel() {
 	check_pkgver
 
 	# optionally change kernel compression
-	check_compress
+	case "$AUTOMATED" in
+		y*|Y*) warning "Automated mode is skipping module compression choices" ;;
+		    *) check_compress ;;
+	esac
 
 	BUILDDIR=$MAKEPKG_DIR makepkg -s -L
 	makepkg_retval=$?
 
 	while true; do
 
-	# running die() with a 2nd path param gives the option to clean the directory
 	case "$makepkg_retval" in
-		 0) die "Build complete & logged to:\n\n$(ls $logdir/$KERNEL*$pkgver*.log)\n" $MAKEPKG_DIR ;;
-	       1|4) die "Error in build()" $MAKEPKG_DIR ;; # 1 = bad PGP sig
-		13) read -p "Force overwrite $KERNEL ? [Y/N]: " ans
-			case "$ans" in
-				y|Y) BUILDDIR=$MAKEPKG_DIR makepkg -sf -L
-				     makepkg_retval=$? ;;
-				  *) die "NOT forcing overwrite - exiting." $MAKEPKG_DIR ;;
-			esac
-			;;
-		*) die "makepkg_retval='$makepkg_retval' untrapped error" $MAKEPKG_DIR ;;
+		 # passing a path param to die() gives an option to clean the directory
+		 0) msg "Build complete & logged to:\n\n$(ls $logdir/$KERNEL*$pkgver*.log)\n"; die $MAKEPKG_DIR ;;
+	       1|4) error "Error in build()"; die $MAKEPKG_DIR ;; # 1 = bad PGP sig
+
+		13) case "$AUTOMATED" in
+			y*|Y*) ans='y'; warning "Automated mode is forcing kernel overwrite" ;;
+			    *) ask "Force overwrite $KERNEL ? [y/N] : "; read ans ;;
+		    esac
+
+		    case "$ans" in
+			y|Y) BUILDDIR=$MAKEPKG_DIR makepkg -sf -L
+			     makepkg_retval=$? ;;
+			  *) error "NOT forcing overwrite: ending build."; die $MAKEPKG_DIR ;;
+		    esac
+		    ;;
+
+		*) warning "makepkg_retval='$makepkg_retval' untrapped error"; die $MAKEPKG_DIR ;;
 	esac
 
 	done
@@ -411,22 +441,26 @@ clean_dir() {
 
 	# rsync an empty directory is much faster than rm -rf
 	if [ -d $dir ]; then
-		read -p "Clean directory: $dir [y/N]: " ans
+
+		case "$AUTOMATED" in
+                        y*|Y*) ans='y'; warning "Automated mode is skipping directory cleanup choice" ;;
+                            *) ask "Clean directory: $dir ? [y/N] : "; read ans ;;
+		esac
 
 		case "$ans" in
-			y|Y) printf "Cleaning up: $dir...\n"
+			y|Y) msg "Cleaning up: $dir..."
 			     rsync -a --delete $tmp/ $dir/
 			     rmdir $tmp $dir
 			     ;;
 			  *) if [ "$clean_type" = "build" ]; then
-				die "Cannot build without cleaning: $dir"
+				error "Cannot build without cleaning: $dir"; die
 			     else
-				printf "Not cleaning: $dir\n"
+				warning "Not cleaning: $dir"
 			     fi
 			     ;;
 		esac
 	else
-		printf "Error: directory does not exist: $dir\n"
+		error "Directory does not exist: $dir"
 	fi
 }
 
@@ -434,7 +468,7 @@ clean_logs() {
 	local log= log_list= logpipe_list= log_name= log_dir=$(parse_makepkg LOGDEST)
 
 	if [ ! -d $log_dir ]; then
-		die "Error: makepkg LOGDEST does not exist"
+		error "Makepkg LOGDEST does not exist"; die
 	fi
 
 	log_list=$(find $log_dir -maxdepth 1 -type f -regextype posix-extended \
@@ -449,28 +483,28 @@ clean_logs() {
 	fi
 
 	if [ -n "$log_list" ]; then
-		read -p "Remove log files in: $log_dir ? [ALL / Y / N] : " ans
+		ask "Remove log files in: $log_dir ? [all/y/N] : "; read ans
 
 		case "$ans" in
 		      all|ALL) rm -f $log_list
-				printf "Removed all makepkg logs in: $log_dir\n"
+				msg "Removed all makepkg logs in: $log_dir"
 				;;
-			  y|Y) printf "<ENTER> to remove each following log:\n\n"
+			  y|Y) msg "<ENTER> to remove each following log (any other input to keep):\n"
 				for log in $log_list; do
 
 					log_name=$(basename $log)
-					printf "Remove: $log_name ?: "; read ans
+					ask "Remove: $log_name ? "; read ans
 
 					case "$ans" in
-						  "") rm -f $log; printf "\tRemoved: $log_name\n" ;;
-						   *) printf "\tSkipped removal of: $log_name\n" ;;
+						  "") rm -f $log; msg2 "Removed: $log_name" ;;
+						   *) msg2 "Skipped removal of: $log_name" ;;
 					esac
 				done
 				;;
-			    *) die "Not removing logs in: $log_dir" ;;
+			    *) warning "Not removing logs in: $log_dir"; die ;;
 		esac
 	else
-		die "No log files in: $log_dir"
+		warning "No log files in: $log_dir"; die
 	fi
 }
 
@@ -478,10 +512,10 @@ clean_sources() {
 	local src_dir=$(parse_makepkg SRCDEST)
 	local dir_list= file_list= dir= file= ans=
 
-	read -p "Selectively remove directories & remove all files in: $src_dir ? [Y/N] : " ans
+	ask "Selectively remove directories & remove all files in: $src_dir ? [y/N] : "; read ans
 
 	if [ ! -d $src_dir ]; then
-		die "Error: makepkg SRCDEST does not exist"
+		error "Makepkg SRCDEST does not exist"; die
 	fi
 
 	case "$ans" in
@@ -496,23 +530,22 @@ clean_sources() {
 			file_list=$(find $src_dir -mindepth 1 -maxdepth 1 -type f)
 
 			for file in $file_list; do
-				printf "removing: $file\n"
+				msg2 "Removing: $file"
 				rm -f $file
 			done
 			;;
-		  *) printf "Not cleaning sources: $src_dir\n" ;;
+		  *) warning "Not cleaning sources: $src_dir" ;;
 	esac
 }
 
 die() {
-	local msg="$1" remove_dir=$2
-	printf "$msg\n"
+	local remove_dir=$1
 
 	if [ -n "$remove_dir" ]; then
 		clean_dir $remove_dir sources
 	fi
 
-	exit $?
+	exit 1
 }
 
 parse_makepkg() {
@@ -526,7 +559,7 @@ parse_makepkg() {
 	done
 
 	if [ -z "$value" ]; then
-		die "Error: failed to parse $var from makepkg config"
+		error "Failed to parse $var from makepkg config"; die
 	else
 		echo $value
 	fi
@@ -539,15 +572,14 @@ sanitize_path() {
 
 check_args() {
 	local option=$1 type=$2 arg=$3
-	local msg="ERROR: option '-$option' argument '$arg' requires:"
+	local err_msg="Option '-$option' argument '$arg' requires:"
 
 	case "$type" in
 		dir) if [ ! -d $arg ] && [ ! -f $arg ];  then
-			printf "$msg existing directory path.\n"
-			exit 1
+			error "$err_msg existing directory path."; die
 		     fi
 		     ;;
-	       none) printf "$msg argument.\n"; exit 1 ;;
+	       none) error "$err_msg argument."; die ;;
 	esac
 }
 
@@ -560,7 +592,7 @@ get_options() {
 	# check build dir & editors
 	check_config
 
-	while getopts ":u:b:i:c:w:hzlo" opt
+	while getopts ":u:b:i:c:w:hzloy" opt
 
 	do
 		if [ -n "${OPTARG}" ]; then
@@ -573,6 +605,7 @@ get_options() {
 			u) KERNEL=${OPTARG}; check_kernel update; update_kernel $REPO ;;
 			b) KERNEL=${OPTARG}; check_kernel build; time build_kernel ;;
 			i) KERNEL=${OPTARG}; check_kernel install; install_kernel ;;
+			y) AUTOMATED='Y' ;;
 			c) check_args $opt dir $arg ; clean_dir $arg sources ;;
 			z) clean_sources ;;
 			l) clean_logs ;;
@@ -586,6 +619,17 @@ get_options() {
 }
 
 main() {
+	# reuse pacman's message colours
+	local utils=/usr/share/makepkg/util/message.sh
+
+	if [ -f $utils ]; then
+		source $utils
+		colorize
+	else
+		printf "$utils is missing: colour messages are broken in $0 :(\n"
+		exit 1
+	fi
+
 	# USER configuration can be stored here
 	if [ -f $USER_CONFIG ]; then
 		source $USER_CONFIG
