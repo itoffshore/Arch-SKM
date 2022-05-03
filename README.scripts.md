@@ -17,6 +17,7 @@ Usage: abk [OPTIONS]
 	[ -u ] : update [ kernel-name ]
 	[ -b ] : build [ kernel-name ]
 	[ -i ] : install [ kernel-name / AUR pkgname ]
+	[ -y ] : yes ( assume YES answers during build stage )
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
 	[ -s ] : clean makepkg source dir selectively ( $SRCDEST )
 	[ -l ] : clean makepkg log dir selectively ( $LOGDEST )
@@ -29,10 +30,16 @@ Run the following 3 commands in sequence with a kernel variant to build a signed
  abk -u linux-hardened
  abk -b linux-hardened
  abk -i linux-hardened
- 
+
 The -i option can also print a menu with version choices for any manually built package e.g:
 --------------------------------------------------------------------------------------------
  abk -i AUR-pkgname
+
+The build stage can assume YES for running automated
+----------------------------------------------------
+ abk -y -b linux-hardened
+
+Automated mode can also be enabled by adding AUTOMATED=Y to your ~/.config/abk.conf
 
 Utilities:
 -----------------------------------------------------
