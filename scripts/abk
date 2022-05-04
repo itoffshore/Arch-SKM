@@ -356,7 +356,7 @@ install_kernel() {
 }
 
 update_kernel() {
-	local kernel_repo=$1 git_retval=
+	local kernel_repo=$1 archive=$2 git_retval=
 	local err_msg="Retrieving '$KERNEL' PKGBUILD failed."
 
 	if [ ! -d $BUILD_DIR ]; then
@@ -366,9 +366,13 @@ update_kernel() {
 
 	cd $BUILD_DIR
 
-	# backup & clean old config
-	if [ -d $KERNEL ]; then
+	# backup old config
+	if [ "$archive" -ne "nobackup" ]; then
 		archive_config $KERNEL
+	fi
+
+	# clean old config
+	if [ -d $KERNEL ]; then
 		clean_dir $KBUILD_DIR build
 	fi
 
@@ -588,7 +592,7 @@ patch_pkgbuild() {
 				msg "Removed $patch_file & restarting update_kernel()"
 
 				# next time branches to 'else'
-				update_kernel $REPO
+				update_kernel $REPO nobackup
 				;;
 			     *) error "Exiting with patch errors on $pkgbuild"; die ;;
 			esac
