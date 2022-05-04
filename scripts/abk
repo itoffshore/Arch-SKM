@@ -367,7 +367,7 @@ update_kernel() {
 	cd $BUILD_DIR
 
 	# backup old config
-	if [ "$archive" -ne "nobackup" ]; then
+	if [ "$archive" != "nobackup" ]; then
 		archive_config $KERNEL
 	fi
 
