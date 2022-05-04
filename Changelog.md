@@ -1,3 +1,31 @@
+Version [0.3.2]                                                       - 20220504
+ - includes Gene's Arch-SKM 2.2.0 pure python release
+
+ - experimental functionality to automate the initial update step
+
+   adds patch_pkgbuild() & patch_generator() with patches for officially
+   supported kernels + some others:
+
+ * linux-amd.patch
+ * linux-ck.patch
+ * linux-hardened.patch
+ * linux-libre.patch
+ * linux-lts.patch
+ * linux.patch
+ * linux-zen.patch
+
+ linux-hardened & linux-lts will always be regularly tested.
+
+ If a patch cannot be cleanly applied an option is given to generate a new patchset.
+
+Version [0.3.1]                                                       - 20220503
+ - adds `-y` option to assume YES answers to run the build stage in an automated manner
+   setting `AUTOMATED=Y` in `~/.config/abk.conf` has the same effect
+
+ - check `$KBUILD_DIR` exists at the start of the build stage to catch input errors
+
+ - reuse pacman message style & colours
+
 Version [0.3]                                                       - 20220502
  - abk convenience function: print a menu / install previously built AUR packages
 
