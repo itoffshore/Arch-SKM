@@ -106,7 +106,7 @@ check_kernel() {
 		else
 
 			warning "Add '$KERNEL' to AUR_KERNELS in: $USER_CONFIG"
-			msg2 "Assuming '$KERNEL' is from AUR\n"
+			msg2 "Assuming '$KERNEL' is from AUR"
 			REPO='aur'
 		fi
 	fi
@@ -380,7 +380,7 @@ update_kernel() {
 			error "$err_msg"
 			die $KBUILD_DIR
 		else
-			asp export $KERNEL
+			msg "$(asp export $KERNEL)"
 		fi
 
 	elif [ "$kernel_repo" = "aur" ]; then
@@ -397,8 +397,11 @@ update_kernel() {
 	fi
 
 	# edit files
-	$GUI_EDITOR $EXAMPLES &
-	$CONSOLE_EDITOR $KBUILD_DIR/PKGBUILD
+#	$GUI_EDITOR $EXAMPLES &
+#	$CONSOLE_EDITOR $KBUILD_DIR/PKGBUILD
+
+	# experimental automated update
+	patch_pkgbuild
 }
 
 build_kernel() {
@@ -553,6 +556,75 @@ die() {
 	fi
 
 	exit 1
+}
+
+edit_pkgbuild() {
+        # edit files
+        $GUI_EDITOR $EXAMPLES &
+        $CONSOLE_EDITOR $KBUILD_DIR/PKGBUILD
+}
+
+patch_pkgbuild() {
+	# initial support for running update step automated
+	local patch_dir=/usr/share/arch-sign-modules/patches
+	local patch_file=$patch_dir/$KERNEL.patch ans=
+	local pkgbuild=$KBUILD_DIR/PKGBUILD
+
+	cd $KBUILD_DIR
+
+	if [ -f $patch_file ]; then
+		msg "Testing $patch_file on $pkgbuild"
+		patch -s -p0 --dry-run < $patch_file
+
+		if [ $? = 0 ]; then
+			msg "$(patch -p0 < $patch_file)"
+			msg2 "Ready to run: $0 -b $KERNEL"
+		else
+			error "Cannot cleanly patch $pkgbuild"
+			ask "Remove $patch_file ? [Y/n] : "
+
+			case "$ans" in
+			    "") sudo rm -f $patch_file
+				msg "Removed $patch_file & restarting update_kernel()"
+
+				# next time branches to 'else'
+				update_kernel $REPO
+				;;
+			     *) error "Exiting with patch errors on $pkgbuild"; die ;;
+			esac
+		fi
+	else
+		error "No patch exists for kernel: $KERNEL"
+		ask "Start $GUI_EDITOR / $CONSOLE_EDITOR & generate a new patchset ? [Y/n] : "; read ans
+
+		case "$ans" in
+			"") patch_generator ;;
+			 *) error "Exiting with unpatched $pkgbuild" ; die ;;
+		esac
+	fi
+}
+
+patch_generator() {
+	local patch_dir=/usr/share/arch-sign-modules/patches
+	local ans= pkgbuild=$KBUILD_DIR/PKGBUILD
+
+	msg "Backing up $pkgbuild => $pkgbuild.orig"
+	cp PKGBUILD PKGBUILD.orig
+
+	# re-run manual step
+	edit_pkgbuild
+
+	diff -up PKGBUILD.orig PKGBUILD > $KERNEL.patch
+	ask "Copy $KERNEL.patch to $patch_dir ? [Y/n] : "; read ans
+
+	case "$ans" in
+		"") sudo cp $KERNEL.patch $patch_dir
+		    sudo chmod 644 $patch_dir/$KERNEL.patch
+		    msg "To test the patch just re-run: $0 -u $KERNEL"
+		    msg "If the new patch works please consider making a Pull Request ;o)"
+		    msg "(or just open a Github issue & paste in your patch so I can test)"
+		    ;;
+	esac
 }
 
 parse_makepkg() {
