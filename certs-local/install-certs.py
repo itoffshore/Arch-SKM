@@ -2,7 +2,7 @@
 #
 # Called from package_headers()
 #
-# Installs the current keys and signing script.
+# Installs the current keys and signing scripts.
 #   .. certs-local/current -> dest_dir
 #   .. certs-local/sign_manual -> dest_dir
 #
@@ -74,8 +74,8 @@ def main():
     if not ok:
         return
 
-    signer = os.path.join(src_dir, 'sign_manual.sh')
-    cmd = '/usr/bin/rsync -aL ' + signer + ' ' + dst_dir
+    signer = os.path.join(src_dir, 'sign_module.py')
+    cmd = '/usr/bin/rsync -a ' + signer + ' ' + dst_dir
     ok = _run_prog_verb(cmd)
     if not ok:
         return
