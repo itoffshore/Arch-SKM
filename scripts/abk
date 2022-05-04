@@ -374,8 +374,15 @@ update_kernel() {
 
 	# download PKGBUILD
 	if [ "$kernel_repo" = "main" ]; then
-		asp update $KERNEL || error "$err_msg"; die $KBUILD_DIR
-		asp export $KERNEL
+		asp update $KERNEL
+
+		if [ $? -ne 0 ]; then
+			error "$err_msg"
+			die $KBUILD_DIR
+		else
+			asp export $KERNEL
+		fi
+
 	elif [ "$kernel_repo" = "aur" ]; then
 		git clone https://aur.archlinux.org/$KERNEL.git
 		git_retval=$?
