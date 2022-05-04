@@ -317,9 +317,29 @@ def make_new_keys (conf):
     kkey = os.path.join(kdir, kbasename + '_key.pem')
     kcrt = os.path.join(kdir, kbasename + '_crt.crt')
 
+    khash_file = os.path.join(kdir, 'khash')
+    ktype_file = os.path.join(kdir, 'ktype')
+
     ok = create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt)
     if not ok:
         return
+
+    #
+    # khash and ktype in same dir - the signing script will read the hash to use
+    #
+    fp = open(khash_file,'w')
+    if fp:
+        fp.write(khash + '\n')
+        fp.close()
+    else:
+        print ('Failed to open (w) : ' + khash_file)
+
+    fp = open(ktype_file,'w')
+    if fp:
+        fp.write(ktype + '\n')
+        fp.close()
+    else:
+        print ('Failed to open (w) : ' + ktype_file)
 
     # update current link to new kdir
     # since the 'current' link and the actual keydir are in same dir we use

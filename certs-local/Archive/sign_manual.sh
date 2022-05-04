@@ -17,7 +17,6 @@
 #
 # Inputs
 #
-HASH=sha512
 Modules="$@"
 
 #
@@ -34,7 +33,11 @@ SIGN=${BuildDir}/scripts/sign-file
 #
 KEY=${MyDirName}/current/signing_key.pem
 CRT=${MyDirName}/current/signing_crt.crt
-
+if [ -f ${MyDirName}/current/khash ] ; then
+    HASH=$(<${MyDirName}/current/khash)
+else
+    HASH=sha512
+fi
 
 #
 # Sign them
