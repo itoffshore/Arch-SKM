@@ -1,0 +1,72 @@
+--- PKGBUILD.orig	2022-05-04 13:49:26.745366029 +0100
++++ PKGBUILD	2022-05-04 13:52:24.646487838 +0100
+@@ -41,7 +41,35 @@ pkgver() {
+ }
+ 
+ prepare() {
+-  cd "${_srcname}"
++  # Out-of-tree module signing
++  #
++  ######################################################
++  # this is added at the start of prepare() & replaces #
++  # 'cd $_srcname'                                     #
++  ######################################################
++  # uncomment for linux-xanmod-cacule & some other AUR kernels
++  # to match the Package Maintainer's variable for the kernel
++  # sources directory.
++  #
++  # local _srcname=linux-${_major}
++
++  msg2 "Rebuilding local signing key..."
++
++  cp -rf /usr/src/certs-local ./
++  cd certs-local
++
++  msg2 "Updating kernel config with new key..."
++
++  # NB: config path must be quoted for file globbing to work
++  # some kernels have multiple config files (e.g linux-libre)
++  # to see configurable options run:
++  # /usr/src/certs-local/genkeys.py -h
++  ./genkeys.py -v --config '../config*'
++
++  cd ../$_srcname
++
++# cd $_srcname
++
+   if [ "${CARCH}" = "x86_64" ]; then
+     cat "${srcdir}/config.x86_64" > ./.config
+   else
+@@ -229,6 +257,32 @@ _package-headers() {
+    rm -rf $modarch
+   done <<< $(find "${pkgdir}"/usr/lib/modules/${_kernver}/build/arch/ -maxdepth 1 -mindepth 1 -type d | grep -v /x86$)
+ 
++  # Out-of-tree module signing
++  ##################################################
++  # this is added at the end of _package-headers() #
++  ##################################################
++  # This is run in the kernel source / build directory
++  #
++  # some AUR kernels may also need to set $builddir to match
++  # the Package Maintainer's variable for the build dir
++  # inside the package:
++  #
++  # local builddir="$pkgdir/usr/lib/modules/${_kernver}/build"
++
++  msg2 "Local Signing certs for out-of-tree modules..."
++
++  certs_local_src="../certs-local"
++  certs_local_dst="${builddir}/certs-local"
++
++  # install certificates
++  ${certs_local_src}/install-certs.py $certs_local_dst
++
++  # install dkms tools
++  dkms_src="$certs_local_src/dkms"
++  dkms_dst="${pkgdir}/etc/dkms"
++  mkdir -p $dkms_dst
++
++  rsync -a $dkms_src/{kernel-sign.conf,kernel-sign.sh} $dkms_dst/
+ }
+ 
+ _package-docs() {
