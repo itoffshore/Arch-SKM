@@ -22,18 +22,23 @@ With **DKMS** support for the following _Out of Tree_ Kernel Modules:
 
 ---
 
-This AUR Package [arch-sign-modules](https://aur.archlinux.org/packages/arch-sign-modules/) is based on the [original manual steps set out below](https://github.com/gene-git/Arch-SKM).
+This AUR Package [arch-sign-modules](https://aur.archlinux.org/packages/arch-sign-modules/) provides the `abk` helper script for [Gene's Arch-SKM](https://github.com/gene-git/Arch-SKM) & packages his python scripts. 
 
-It reduces the manual steps for building a fully signed custom kernel to 3 commands to *Update* / *Build* & *Install* the kernel:
+* Gene's original manual steps are set out further below in the context of building officialy suported Arch Linux kernels. 
+* See also [Gene's README](https://github.com/gene-git/Arch-SKM/blob/master/README.md) for technical details of his **Signed Kernel Module** implementation.
+* Kernel modules are now signed with `ECDSA` signatures in pure python.
+
+`abk` reduces the manual steps for building a fully signed custom kernel to 3 commands to *Update* / *Build* & *Install* the kernel:
 ```
 abk -u kernel-name
 abk -b kernel-name
 abk -i kernel-name
 ```
+Since `abk` version `0.3.2` the initial update stage will first try to automatically update a `PKGBUILD` for officially supported kernels (& some AUR kernels):
 
 * [README.scripts.md](https://github.com/itoffshore/Arch-SKM/blob/master/README.scripts.md)
 
-In the first step above of the build process the following `PKGBUILD` example opens in your configured `GUI_EDITOR` & `CONSOLE_EDITOR` simultaneously for configuration:
+If a `patch` cannot be applied cleanly `abk` will fall back to the original manual mode & generate a new `patch`:
 
 * [PKGBUILD example](https://github.com/itoffshore/Arch-SKM/blob/master/Arch-Linux-PKGBUILD-example)
 
@@ -91,7 +96,6 @@ needed using [DKMS](https://wiki.archlinux.org/index.php/DKMS).
 Examples of such packages, provided by Arch, include:
 
   * [virtualbox-guest-modules-arch](https://www.archlinux.org/packages/?name=virtualbox-guest-modules-arch) 
-  * [wireguard-arch](https://www.archlinux.org/packages/?name=wireguard-arch)
 
 During a standard kernel compilation, the kernel build tools create a private/public key pair and 
 sign every in tree module (using the private key). The public key is saved in the kernel itself. 
@@ -203,28 +207,28 @@ the updated `.config` file back to the build file `config`.
 
   In the directory where the kernel package is built:
 
-  `mkdir certs-local`
+  * `mkdir certs-local`
 
   This directory will provide the tools to create the keys, as well as signing kernel modules.
 
-  Put the 4 files into `certs-local`:
+  * put the 4 files into `certs-local`:
   ```
   genkeys.py
   x509.oot.genkey
   install-certs.py
-  sign_manual.sh
+  sign_module.py
   ```
 
   The files `genkeys.py` and its config `x509.oot.genkey` are used to create key pairs. 
   
   It also provides the kernel with the key to sign the out of tree modules by updating the config file used to build the kernel.
 
-  The script `sign_manual.sh` is used to sign out of tree kernel modules by hand.
+  The script `sign_module.py` is used to sign out of tree kernel modules by hand.
   
   `genkeys.py` will create the key pairs in a directory named by date-time. It defaults to refreshing the keys every 7 days but 
   this can be changed with a command line option.
 
-  It also creates a soft link named 'current' which points to the newly created directory with the 'current' keys. 
+  It also creates a soft link named '*current*' which points to the newly created directory with the '*current*' keys. 
   
   The actual key directory is named by date and time.
 
@@ -274,7 +278,7 @@ the updated `.config` file back to the build file `config`.
 
  * Instructions for using the `arch-sign-modules` helper script `abk`:
   
- * https://github.com/itoffshore/Arch-SKM/blob/master/README.scripts.md
+ * [README.scripts.md](https://github.com/itoffshore/Arch-SKM/blob/master/README.scripts.md)
 
 ---
 
@@ -307,9 +311,9 @@ These are the 6 supporting files referenced above.
 * certs-local/genkeys.py
 * certs-local/install-certs.py
 * certs-local/x509.oot.genkey
-* certs-local/sign_manual.sh
+* certs-local/sign_module.py
 * certs-local/dkms/kernel-sign.conf
 * certs-local/dkms/kernel-sign.sh
 ```
 
-:exclamation: Do not forget to make the scripts **executable** with `chmod +x certs-local/*.{sh,py}` :exclamation:
+:exclamation: Do not forget to make the scripts **executable** with `chmod +x certs-local/*.py` :exclamation:
