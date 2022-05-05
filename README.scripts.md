@@ -62,7 +62,7 @@ Configured kernels:
 ```
 ---
 
-**Automated Mode** 
+**Automated Mode**
 -----
 
 **Update Stage** (added in `0.3.2`)
@@ -122,7 +122,7 @@ To make the example changes that open in `GUI_EDITOR` during kernel configuratio
 * For these unconfigured kernels you will see `sign-file.c` inside the package's modules build scripts directory.
 
 * See also: [Kernel module signing facility](https://www.kernel.org/doc/html/v5.13/admin-guide/module-signing.html?highlight=module%20signing)
---- 
+---
 
 * With the [arch-sign-modules](https://aur.archlinux.org/packages/arch-sign-modules/) AUR package installed, during the first `update` stage the configured `GUI_EDITOR` will open the [PKGBUILD configuration example](https://github.com/itoffshore/Arch-SKM/blob/master/Arch-Linux-PKGBUILD-example) with instructions to edit the kernel `PKGBUILD` which will simultaneously open in the configured `CONSOLE_EDITOR`.
 
