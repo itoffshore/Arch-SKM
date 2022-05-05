@@ -1,0 +1,17 @@
+---
+name: pull-request-workflow
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+jobs:
+  shell_linter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run ShellCheck
+        uses: azohra/shell-linter@latest
+        with:
+          path: "scripts"
