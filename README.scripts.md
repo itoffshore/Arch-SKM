@@ -4,7 +4,7 @@ BUILD_DIR=~/build
 GUI_EDITOR=mousepad
 CONSOLE_EDITOR=nano
 MAIN_KERNELS=linux linux-hardened linux-lts linux-zen
-AUR_KERNELS=linux-hardened-cacule linux-xanmod-cacule linux-ck linux-zen-lts510
+AUR_KERNELS=linux-hardened-cacule linux-xanmod-cacule linux-ck linux-amd
 MAKEPKG_DIR=/tmp/makepkg
 ```
 Edit to suit your `local` environment.
@@ -60,6 +60,45 @@ Configured kernels:
 * linux-ck
 * linux-libre
 ```
+---
+
+**Automated Mode** 
+-----
+
+**Update Stage** (added in `0.3.2`)
+
+* The initial update stage will now try to apply a patchset to update a `PKGBUILD` instead of opening `GUI_EDITOR` / `CONSOLE_EDITOR` for manual editing.
+
+*   Initially the following kernels are supported:
+```
+* linux-amd
+* linux-ck
+* linux-hardened
+* linux-libre
+* linux-lts
+* linux
+* linux-zen
+```
+
+* If a `patch` cannot be applied cleanly `abk` will fall back to manual operation with the configured `EDITORS` & generate a new `patch`.
+* To test any newly generated patch simply re-run `abk -u kernel-variant`
+
+---
+
+**Build Stage** (added in `0.3.1`)
+
+* `abk -y -b kernel-variant` will run the build step assuming `yes` answers to all questions
+* Alternatively add `AUTOMATED=Y` to your `~/.config/abk.conf` & run `abk -b kernel-variant`
+* Module compression is left unchanged
+* Kernels will be automatically overwritten
+* `makepkg` build directory will be automatically cleaned
+
+
+---
+
+**AUR Kernel Notes**
+-----
+
 * NB: some AUR kernel `PKGBUILD` do not use `$_srcname` & `$builddir` variables that the officially supported kernels do. For some AUR kernels you will need to set values to match the Package Maintainer's variable:
 ```
 linux-xanmod-cacule:
