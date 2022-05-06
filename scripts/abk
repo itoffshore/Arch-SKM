@@ -28,7 +28,9 @@ README=/usr/share/arch-sign-modules/README.scripts.md
 ######################################################
 
 usage() {
-	local script=$(basename "$0")
+	local script=
+	script=$(basename "$0")
+
         cat <<EOF
 Arch Linux Sign Modules:
 ------------------------
@@ -136,12 +138,16 @@ check_config() {
 check_pkgver() {
 	# some AUR packages use variables for $pkgver
 	# sourcing a PKGBUILD with functon names starting with an underscore gives errors
-	local pkgbuild=${KBUILD_DIR}/PKGBUILD tmp=$(mktemp) search_str='prepare()'
-	local line=
+	local pkgbuild=${KBUILD_DIR}/PKGBUILD search_str='prepare()'
+	local line= tmp=
+
+	tmp=$(mktemp)
 
 	if [ -f "$pkgbuild" ]; then
 		line=$(grep -nm1 ^$search_str "$pkgbuild" | cut -d : -f1)
 		head -n $(( line -1 )) "$pkgbuild"  > "$tmp"
+
+		# shellcheck disable=SC1090 # $tmp location is random
 		. "$tmp" && rm -f "$tmp"
 	else
 		error "No PKGBUILD to check version"
@@ -149,19 +155,23 @@ check_pkgver() {
 }
 
 check_algo() {
-	echo "${1#CONFIG_MODULE_COMPRESS_*}" | cut -d\= -f 1
+	echo "${1#CONFIG_MODULE_COMPRESS_*}" | cut -d'=' -f 1
 }
 
 check_compress() {
-	local arch=$(lscpu | grep ^Architecture | awk '{print $2}')
-	local config=$(find "$KBUILD_DIR" -maxdepth 1 -type f -regextype posix-extended -regex ".*config(.$arch)?")
-	local algo_detect=true compression= compress_list= algo_list=
-	local ans= x= ctr=0 config_str= algo= choice=0
+	local config= algo_detect=true compression= compress_list= algo_list=
+	local ans= x= ctr=0 config_str= algo= choice=0 arch=
+
+	# linux-libre supports multiple arches
+	arch=$(lscpu | grep ^Architecture | awk '{print $2}')
+	config=$(find "$KBUILD_DIR" -maxdepth 1 -type f -regextype posix-extended \
+		-regex ".*config(.$arch)?")
 
 	# some AUR kernels do not ship a kernel config
 	if [ -n "$config" ] && [ -f "$config" ]; then
 		compression=$(grep -hE "^CONFIG_MODULE_COMPRESS_[A-Z]+=y" "$config")
-		compress_list=$(grep -hE "CONFIG_MODULE_COMPRESS_[A-Z]+" "$config" | sed 's|#||' | awk '{print $1}')
+		compress_list=$(grep -hE "CONFIG_MODULE_COMPRESS_[A-Z]+" "$config" \
+			| sed 's|#||' | awk '{print $1}')
 
 		for x in $compress_list; do
 			algo_list="$algo_list $(check_algo "$x")"
@@ -249,7 +259,9 @@ archive_config() {
 }
 
 remove_old_pkgs() {
-	local pkgdir=$(parse_makepkg PKGDEST) target= keep= ans=
+	local pkgdir= target= keep= ans=
+
+	pkgdir=$(parse_makepkg PKGDEST)
 
 	if [ -x "$(which paccache)" ]; then
 		msg "Preparing to clean old packages in: $pkgdir\n"
@@ -274,9 +286,10 @@ remove_old_pkgs() {
 
 print_warnings() {
 	# display list of kernel logs
-	local kern_log_list= kern_ctr=0 log= ans= tmp=$(mktemp)
-	local logdir=$(parse_makepkg LOGDEST) kernel_log=
+	local kern_log_list= kern_ctr=0 log= ans= tmp= logdir= kernel_log=
 
+	logdir=$(parse_makepkg LOGDEST)
+	tmp=$(mktemp)
 	kern_log_list=$(find "$logdir" -maxdepth 1 -type f -regextype posix-extended \
 			-regex ".*$KERNEL\-[0-9\.]+.*\-build.log")
 
@@ -315,8 +328,11 @@ print_warnings() {
 install_kernel() {
 	# display list of manually built packages
 	local pkgtype= ksign='/etc/dkms/kernel-sign'
-	local kern_list= kern_ctr=0 pkg= ans= tmp=$(mktemp)
-	local kernel_install= header_install= pkgdir=$(parse_makepkg PKGDEST)
+	local kern_list= kern_ctr=0 pkg= ans= tmp=
+	local kernel_install= header_install= pkgdir=
+
+	tmp=$(mktemp)
+	pkgdir=$(parse_makepkg PKGDEST)
 
 	kern_list=$(find "$pkgdir" -maxdepth 1 -type f -regextype posix-extended \
 			-regex ".*$KERNEL\-[0-9\.]+.*")
@@ -419,7 +435,9 @@ update_kernel() {
 }
 
 build_kernel() {
-	local ans= makepkg_retval= logdir=$(parse_makepkg LOGDEST)
+	local ans= makepkg_retval= logdir=
+
+	logdir=$(parse_makepkg LOGDEST)
 
 	cd "$KBUILD_DIR" || die
 
@@ -461,7 +479,9 @@ build_kernel() {
 }
 
 clean_dir() {
-	local dir=$1 clean_type=$2 tmp=$(mktemp -d) ans=
+	local dir=$1 clean_type=$2 tmp= ans=
+
+	tmp=$(mktemp -d)
 
 	# rsync an empty directory is much faster than rm -rf
 	if [ -d "$dir" ]; then
@@ -489,7 +509,9 @@ clean_dir() {
 }
 
 clean_logs() {
-	local log= log_list= logpipe_list= log_name= log_dir=$(parse_makepkg LOGDEST)
+	local log= log_list= logpipe_list= log_name= log_dir=
+
+	log_dir=$(parse_makepkg LOGDEST)
 
 	if [ ! -d "$log_dir" ]; then
 		error "Makepkg LOGDEST does not exist"; die
@@ -533,8 +555,9 @@ clean_logs() {
 }
 
 clean_sources() {
-	local src_dir=$(parse_makepkg SRCDEST)
-	local dir_list= file_list= dir= file= ans=
+	local dir_list= file_list= dir= file= ans= src_dir=
+
+	src_dir=$(parse_makepkg SRCDEST)
 
 	ask "Remove all directories & files in: $src_dir ? [y/N] : "; read -r ans
 
@@ -715,6 +738,7 @@ main() {
 	# reuse pacman's message colours
 	local utils=/usr/share/makepkg/util/message.sh
 
+	# shellcheck disable=SC1090 # does not exist in test env
 	if [ -f $utils ]; then
 		. $utils
 		colorize
@@ -724,6 +748,7 @@ main() {
 	fi
 
 	# USER configuration can be stored here
+	# shellcheck disable=SC1090 # does not exist in test env
 	if [ -f $USER_CONFIG ]; then
 		. $USER_CONFIG
 	fi
