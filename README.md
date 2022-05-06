@@ -1,3 +1,5 @@
+[![pull-request-workflow](https://github.com/itoffshore/Arch-SKM/actions/workflows/pull-request.yml/badge.svg)](https://github.com/itoffshore/Arch-SKM/actions/workflows/pull-request.yml)
+
 
 ### :lock: Arch Linux Sign Modules:
 ---
