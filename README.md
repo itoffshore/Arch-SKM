@@ -10,8 +10,7 @@
 * `linux-lts`
 * `linux-hardened`
 * `linux-zen`
-* `linux-hardened-cacule`
-* `linux-xanmod-cacule`
+* `linux-amd`
 * `linux-ck`
 * `linux-libre`
 * `AUR kernels`
