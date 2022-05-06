@@ -10,7 +10,7 @@ jobs:
   shell_linter:
     runs-on: ubuntu-latest
     env:
-      SHELLCHECK_OPTS: "-e SC1007 -e SC2039 -e SC3010"
+      SHELLCHECK_OPTS: "-e SC1007 -e SC2039 -e SC3010 -e SC3043"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

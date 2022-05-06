@@ -202,10 +202,10 @@ check_compress() {
 		# read choice
 		while [ $ans  -lt 1 ] || [ $ans -gt $ctr ]; do
 			ask "Choose compression [1 - $ctr] : "; read -r ans
-			ans=$(echo "$ans" | tr -cd [:digit:])
+			ans=$(echo "$ans" | tr -cd "[:digit:]")
 			if [ -z "$ans" ]; then echo; warning "Compression unchanged"; return; fi
 
-			# ignore shellcheck here
+			# shellcheck disable=SC2086 # quoting $algo_list breaks awk
 			choice=$(echo $algo_list | awk -v var="$ans" '{print $var}')
 		done
 
@@ -235,6 +235,8 @@ archive_config() {
 
 	# source PKGBUILD vars
 	check_pkgver
+
+	# shellcheck disable=SC2154 # $pkgver is sourced in check_pkgver()
 	archive=$KERNEL-$pkgver.tar.xz
 
 	cd $BUILD_DIR || die
@@ -295,10 +297,10 @@ print_warnings() {
 
 		while [ $ans  -lt 1 ] || [ $ans -gt $kern_ctr ]; do
 			echo; ask "Choose kernel build log to parse for warnings [1 - $kern_ctr] : "; read -r ans; echo
-			ans=$(echo "$ans" | tr -cd [:digit:])
+			ans=$(echo "$ans" | tr -cd "[:digit:]")
 			if [ -z "$ans" ]; then warning "No kernel build log chosen quitting."; die; fi
 
-			# ignore shellcheck here
+			# shellcheck disable=SC2086 # quoting $kern_log_list breaks awk
 			kernel_log=$(echo $kern_log_list | awk -v var="$ans" '{print $var}')
 		done
 	else
@@ -345,11 +347,12 @@ install_kernel() {
 
 		while [ $ans  -lt 1 ] || [ $ans -gt $kern_ctr ]; do
 			ask "Choose $pkgtype to install [1 - $kern_ctr] : "; read -r ans
-			ans=$(echo "$ans" | tr -cd [:digit:])
+			ans=$(echo "$ans" | tr -cd "[:digit:]")
 			if [ -z "$ans" ]; then echo; warning "No $pkgtype chosen: quitting."; die; fi
 
-			# ignore shellcheck here
+			# shellcheck disable=SC2086 # quoting $kern_list breaks awk
 			kernel_install=$(echo $kern_list | awk -v var="$ans" '{print $var}')
+			# shellcheck disable=SC2086 # quoting $header_list breaks awk
 			header_install=$(echo $header_list | awk -v var="$ans" '{print $var}')
                 done
 	else
@@ -588,7 +591,7 @@ patch_pkgbuild() {
 
 		if patch -s -p0 --dry-run < "$patch_file"; then
 
-			msg "$(patch -p0 < $patch_file)"
+			msg "$(patch -p0 < "$patch_file")"
 			msg2 "Ready to run: $0 -b $KERNEL"
 		else
 			error "Cannot cleanly patch $pkgbuild"
@@ -626,7 +629,7 @@ patch_generator() {
 	edit_pkgbuild
 
 	diff -up PKGBUILD.orig PKGBUILD > "$KERNEL".patch
-	ask "Copy $KERNEL.patch to $patch_dir ? [Y/n] : "; read ans
+	ask "Copy $KERNEL.patch to $patch_dir ? [Y/n] : "; read -r ans
 
 	case "$ans" in
 		"") sudo cp "$KERNEL".patch $patch_dir
@@ -643,7 +646,7 @@ parse_makepkg() {
 
 	for conf in $conf_list; do
 		if [ -f "$conf" ]; then
-			value=$(grep ^"$var" "$conf" | cut -d\= -f 2 2>/dev/null)
+			value=$(grep ^"$var" "$conf" | cut -d'=' -f 2 2>/dev/null)
 			if [ -n "$value" ]; then break; fi
 		fi
 	done
@@ -716,7 +719,7 @@ main() {
 		. $utils
 		colorize
 	else
-		printf "$utils is missing: colour messages are broken in $0 :(\n"
+		printf "%s\n" "$utils is missing: colour messages are broken in $0 :("
 		exit 1
 	fi
 
