@@ -154,7 +154,7 @@ check_algo() {
 
 check_compress() {
 	local arch=$(lscpu | grep ^Architecture | awk '{print $2}')
-	local config=$(find "$pkgdir" -maxdepth 1 -type f -regextype posix-extended -regex ".*config(.$arch)?")
+	local config=$(find "$KBUILD_DIR" -maxdepth 1 -type f -regextype posix-extended -regex ".*config(.$arch)?")
 	local algo_detect=true compression= compress_list= algo_list=
 	local ans= x= ctr=0 config_str= algo= choice=0
 
