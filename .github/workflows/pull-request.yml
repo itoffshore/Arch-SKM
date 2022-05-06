@@ -5,9 +5,9 @@ on:
     types:
       - opened
       - reopened
-  pull_request_target:
-    paths:
-      - 'scripts/*'
+      - edited
+      - synchronize
+      - review_requested
 
 jobs:
   shell_linter:
