@@ -5,6 +5,9 @@ on:
     types:
       - opened
       - reopened
+  pull_request_target:
+    paths:
+      - 'scripts/*'
 
 jobs:
   shell_linter:
