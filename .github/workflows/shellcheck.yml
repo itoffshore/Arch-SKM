@@ -1,5 +1,5 @@
 ---
-name: pull-request-workflow
+name: shellcheck
 on:
   pull_request:
     types:
