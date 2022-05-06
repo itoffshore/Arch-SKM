@@ -1,4 +1,4 @@
-[![pull-request-workflow](https://github.com/itoffshore/Arch-SKM/actions/workflows/pull-request.yml/badge.svg)](https://github.com/itoffshore/Arch-SKM/actions/workflows/pull-request.yml)
+[![shellcheck](https://github.com/itoffshore/Arch-SKM/actions/workflows/shellcheck.yml/badge.svg)](https://github.com/itoffshore/Arch-SKM/actions/workflows/shellcheck.yml)
 
 
 ### :lock: Arch Linux Sign Modules:
