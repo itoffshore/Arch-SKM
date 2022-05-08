@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#
+"""
 # Create new pub/priv key pair for signing out of tree kernel modules.
 # This program must reside in the certs-local dir but can be run from any directory.
 # It will use it's own path to locate the cert-local dir
@@ -8,7 +8,8 @@
 #
 # Args:
 #  refresh  - time before new keys are created. e.g. --refresh 24h
-#             default is 7days. Units may be abbreviateed and one of secs, mins, hours, days or weeks
+#             default is 7days. Units may be abbreviateed and one of secs, mins, hours,
+#             days or weeks
 #  khash    - sets hash (default is sha512)
 #  ktype    - rsa or ec (default is ec)
 #  config   - config file to update with signing key. May contain wildcard
@@ -17,9 +18,11 @@
 #
 # (This tool replaces both of the older bash scripts:  genkeys.sh and fix_config.sh)
 # NB:
-#   We always check the config - even if not refreshing keys to be sure it has the current signing key.
+#   We always check the config - even if not refreshing keys to be sure it has the
+#   current signing key.
 #
-# Default refresh key is 7 days
+#  Default refresh key is 7 days
+"""
 # Gene 2022-04-30
 #
 import os
@@ -30,13 +33,14 @@ import argparse
 import uuid
 import re
 
+#import pdb
 import utils
-import pdb
 
-#
-# Command line options
-#
+#------------------------------------------------------------------------
 def initialize() :
+    """
+     Command line args and initialize
+    """
     me = os.path.basename(sys.argv[0])
     cert_dir = os.path.dirname(sys.argv[0])
     cert_dir = os.path.abspath(cert_dir)
@@ -53,10 +57,14 @@ def initialize() :
     khash = 'sha512'
     ktype = 'ec'
 
-    ap.add_argument('-r',  '--refresh', help='key refresh period (' + refresh + ') E.g. "7d", "24h", "always"')
-    ap.add_argument('-c',  '--config',  help='Kernel Config(s) to be updated (' + kconfig + ') - wildcards ok (please quote to avoid shell expansion).')
+    ap.add_argument('-r',  '--refresh',
+            help='key refresh period (' + refresh + ') E.g. "7d", "24h", "always"')
+    ap.add_argument('-c',  '--config',
+            help='Kernel Config(s) to be updated (' + kconfig
+                   + ') - wildcards ok (please quote to avoid shell expansion).')
     ap.add_argument('-kh', '--khash',   help='Hash type (' + khash + ')')
-    ap.add_argument('-kt', '--ktype',   help='Crypto algo (' + khash + ') - Must be either ec or rsa')
+    ap.add_argument('-kt', '--ktype',   help='Crypto algo (' + khash
+                    + ') - Must be either ec or rsa')
     ap.add_argument('-v',  '--verb', action='store_true', help='Verbose')
 
     parg = ap.parse_args()
@@ -72,7 +80,7 @@ def initialize() :
         verb = parg.verb
 
     kconfig_list = utils.file_list_glob(kconfig)
-    if not kconfig_list or kconfig_list == []:
+    if not kconfig_list :
         print ('No matching kernel config files found')
         return None
 
@@ -93,14 +101,14 @@ def initialize() :
 
 #------------------------------------------------------------------------
 #
-# Check kernel config(s) :
-# The config(s) checked to ensure hash and key_type match whats expected
-#
 #   1) Get hash.
 #   2) Confirm EC is in config
 #
 def check_kern_config(conf):
-
+    """
+    # Check kernel config(s) :
+    # The config(s) checked to ensure hash and key_type match whats expected
+    """
     ok = True
     khash = conf['khash']
     ktype = conf['ktype']
@@ -125,45 +133,46 @@ def check_kern_config(conf):
     num_kconfigs = len(kconfig_list)
     num_with_errors = 0
     for kconfig in kconfig_list:
-        fp = open(kconfig, 'r')
-        if fp:
-            conf_items = fp.readlines()
-            fp.close ()
-            count = 0
-            for item in conf_items:
-                for ckey, config_opt in to_match.items():
-                    if item.startswith(config_opt):
-                        count += + 1
-                        want = want_get[ckey]
-                        found = item.split('=')[1]
-                        found = found.strip('"\n')
-                        found = found.lower()
-                        if found != want:
-                            print ('Bad ' + ckey + ' in ' + kconfig + ' Want ' + want + ' found ' + found)
-                            num_with_errors += 1
+        try:
+            with open(kconfig, 'r') as fp:
+                conf_items = fp.readlines()
+                fp.close ()
+                count = 0
+                for item in conf_items:
+                    for ckey, config_opt in to_match.items():
+                        if item.startswith(config_opt):
+                            count += + 1
+                            want = want_get[ckey]
+                            found = item.split('=')[1]
+                            found = found.strip('"\n')
+                            found = found.lower()
+                            if found != want:
+                                print ('Bad ' + ckey + ' in ' + kconfig + ' Want '
+                                        + want + ' found ' + found)
+                                num_with_errors += 1
 
-                if count >= num_to_match:
-                    # quit if got the config items we need to check
-                    break
-        else:
-            print ('Failed to open config : ' + kconfig)
+                    if count >= num_to_match:
+                        # quit if got the config items we need to check
+                        break
+        except IOError as err:
+            print (f'Failed to open : {kconfig} - error : {err}')
             num_with_errors += 1
 
     if num_with_errors > 0:
-        print (' ' + str(num_with_errors) + ' out of ' + str(num_kconfigs) + ' bad kernel config files')
+        print (' ' + str(num_with_errors) + ' out of ' + str(num_kconfigs)
+                + ' bad kernel config files')
         return not ok
 
     return ok
 
 #------------------------------------------------------------------------
-#
-# Update config with new keys if needed
 # Safest is to always read the current link and check config regardless if key was refreshed.
 #
 def update_configs(conf):
-
+    """
+     # Update configs with new keys if needed
+    """
     all_ok = True
-    verb = conf['verb']
     cert_dir = conf['cert_dir']
     kconfig_list = conf['kconfig_list']
 
@@ -197,14 +206,15 @@ def update_configs(conf):
 
     return all_ok
 
+#------------------------------------------------------------------------
 def update_one_config(conf, kconfig_path, signing_key):
-
+    """
+     update a single kernel config
+    """
     ok = True
-
     verb = conf['verb']
 
     kconfig_dir = os.path.dirname(kconfig_path)
-    kconfig_name = os.path.basename(kconfig_path)
 
     # always make temp in same dir to avoid rename across file systems
     kconfig_name_temp = str(uuid.uuid4())
@@ -213,9 +223,11 @@ def update_one_config(conf, kconfig_path, signing_key):
     conf_name = 'CONFIG_SYSTEM_TRUSTED_KEYS='
 
     # read existing config
-    fp = open(kconfig_path, 'r')
-    kconfig_rows = fp.readlines()
-    fp.close()
+    try:
+        with open(kconfig_path, 'r') as fp:
+            kconfig_rows = fp.readlines()
+    except IOError as err:
+        print (f'Failed to open : {kconfig_path} - error : {err}')
 
     changed = True
     new_rows = []
@@ -226,19 +238,22 @@ def update_one_config(conf, kconfig_path, signing_key):
             if cur_signing_key == signing_key:
                 changed = False
                 break
-            else:
-                new_row = conf_name + signing_key
-                new_rows.append(new_row)
+            new_row = conf_name + signing_key
+            new_rows.append(new_row)
         else:
             new_rows.append(row)
 
     if changed:
         if verb:
             print ('Updating config: ' + kconfig_path)
-        fp = open(kconfig_path_temp, 'w')
-        for row in new_rows:
-            fp.write(row)
-        fp.close()
+
+        try:
+            with open(kconfig_path_temp, 'w') as fp:
+                for row in new_rows:
+                    fp.write(row)
+        except IOError as err:
+            print (f'Failed to write : {kconfig_path_temp} - error : {err}')
+
         os.rename(kconfig_path_temp, kconfig_path)
     else :
         if verb:
@@ -247,20 +262,21 @@ def update_one_config(conf, kconfig_path, signing_key):
     return ok
 
 #------------------------------------------------------------------------
-#
-# Make the actual keys - rsa or ec using openssl
-#
 def create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt) :
-
+    """
+    # Make the actual keys - rsa or ec using openssl
+    """
     verb = conf['verb']
     ok = True
-    cmd = 'openssl req -new -nodes -utf8 -' + khash + ' -days ' + kvalid + ' -batch -x509 -config ' + kx509
+    cmd = 'openssl req -new -nodes -utf8 -' + khash + ' -days ' + kvalid
+    cmd = cmd + ' -batch -x509 -config ' + kx509
     cmd = cmd + ' -outform PEM' + ' -out ' + kkey + ' -keyout ' + kkey
+
     if ktype == 'ec':
         cmd = cmd + ' -newkey ec -pkeyopt ec_paramgen_curve:secp384r1'
 
     pargs = cmd.split()
-    [rc, stdout, stderr] = utils.run_prog(pargs)
+    [rc, _stdout, stderr] = utils.run_prog(pargs)
 
     if rc != 0:
         print('Error making new key')
@@ -271,7 +287,7 @@ def create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt) :
 
     cmd = 'openssl pkey -in ' + kkey + ' -out ' +  kprv
     pargs = cmd.split()
-    [rc, stdout, stderr] = utils.run_prog(pargs)
+    [rc, _stdout, stderr] = utils.run_prog(pargs)
     if rc != 0:
         print('Error making prv key')
         if verb and stderr:
@@ -280,7 +296,7 @@ def create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt) :
 
     cmd = 'openssl x509 -outform der -in ' + kkey + ' -out '  + kcrt
     pargs = cmd.split()
-    [rc, stdout, stderr] = utils.run_prog(pargs)
+    [rc, _stdout, stderr] = utils.run_prog(pargs)
     if rc != 0:
         print('Error making crt')
         if verb and stderr:
@@ -290,10 +306,10 @@ def create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt) :
     return ok
 
 #------------------------------------------------------------------------
-#
-# Set up before we use openssl to create_new_keys()
-#
 def make_new_keys (conf):
+    """
+    # Set up before we use openssl to create_new_keys()
+    """
 
     ok = True
     cert_dir = conf['cert_dir']
@@ -322,24 +338,22 @@ def make_new_keys (conf):
 
     ok = create_new_keys(conf, ktype, kvalid, kx509, khash, kprv, kkey, kcrt)
     if not ok:
-        return
+        return not ok
 
     #
     # khash and ktype in same dir - the signing script will read the hash to use
     #
-    fp = open(khash_file,'w')
-    if fp:
-        fp.write(khash + '\n')
-        fp.close()
-    else:
-        print ('Failed to open (w) : ' + khash_file)
+    try:
+        with open(khash_file,'w') as fp:
+            fp.write(khash + '\n')
+    except IOError as err:
+        print (f'Failed to write : {khash_file} - error : {err}')
 
-    fp = open(ktype_file,'w')
-    if fp:
-        fp.write(ktype + '\n')
-        fp.close()
-    else:
-        print ('Failed to open (w) : ' + ktype_file)
+    try:
+        with open(ktype_file,'w') as fp:
+            fp.write(ktype + '\n')
+    except IOError as err:
+        print (f'Failed to open : {ktype_file} - error : {err}')
 
     # update current link to new kdir
     # since the 'current' link and the actual keydir are in same dir we use
@@ -357,15 +371,16 @@ def make_new_keys (conf):
     return ok
 
 #------------------------------------------------------------------------
-# check_refresh()
 #
 # Is it time to create new keys
 #
 def check_refresh(conf):
-
+    """
+    # check if key refresh is needed
+    """
     ok = True
-    verb = conf['verb']
     refresh = conf.get('refresh')
+    cert_dir = conf.get('cert_dir')
 
     if not refresh:
         return ok
@@ -373,43 +388,41 @@ def check_refresh(conf):
         return ok
 
     # get the refresh time
-    parse = re.findall('(\d+)(\w+)', refresh)[0]
-    if parse:
+    parse = re.findall(r'(\d+)(\w+)', refresh)[0]
+    if parse and len(parse) > 1:
         freq = parse[0]
         freq = int(freq)
-        if len(parse) > 1:
-            units = parse[1]
-        else:
-            print ('Refresh error = missing units')
-            return ok
+        units = parse[1]
     else:
         print ('Failed to parse refresh string')
         return ok
 
-    kfile = os.path.join('current', 'signing_key.pem')
+    kfile = os.path.join(cert_dir, 'current', 'signing_key.pem')
     if os.path.exists(kfile) :
         mod_time = os.path.getmtime(kfile)
         curr_dt = datetime.datetime.fromtimestamp(mod_time)
 
-        if units.startswith('s'):
-            next_dt = curr_dt + datetime.timedelta(seconds=freq)
-        elif units.startswith('m'):
-            next_dt = curr_dt + datetime.timedelta(minutes=freq)
-        elif units.startswith('h'):
-            next_dt = curr_dt + datetime.timedelta(hours=freq)
-        elif units.startswith('d'):
-            next_dt = curr_dt + datetime.timedelta(days=freq)
-        elif units.startswith('w'):
-            next_dt = curr_dt + datetime.timedelta(weeks=freq)
+        match units[0]:
+            case 's':
+                next_dt = curr_dt + datetime.timedelta(seconds=freq)
+            case 'm':
+                next_dt = curr_dt + datetime.timedelta(minutes=freq)
+            case 'h':
+                next_dt = curr_dt + datetime.timedelta(hours=freq)
+            case 'd':
+                next_dt = curr_dt + datetime.timedelta(days=freq)
+            case 'w':
+                next_dt = curr_dt + datetime.timedelta(weeks=freq)
 
         now = utils.date_time_now()
         if next_dt > now:
             ok = False
-
     return ok
 
 def main():
-
+    """
+    # genkeys - makes out of tree kernel module signing keys
+    """
     #pdb.set_trace()
     conf = initialize()
     if not conf:
@@ -420,11 +433,11 @@ def main():
         return
 
     if check_refresh(conf) :
-        ok = make_new_keys (conf)
+        make_new_keys (conf)
     elif verb:
         print ('Key refresh not needed yet')
 
-    ok = update_configs(conf)
+    update_configs(conf)
 
     return
 
