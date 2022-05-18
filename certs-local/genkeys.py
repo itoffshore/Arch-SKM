@@ -36,24 +36,10 @@ import re
 #import pdb
 import utils
 
-def open_file(path, mode):
-    """"
-    Open a file and return file object
-    """
-    try:
-        fobj = open(path, mode, encoding='utf-8')
-
-    except OSError as err:
-        print(f'Error opening file {path} : {err}')
-        fobj = None
-
-    return fobj
-
-
 #------------------------------------------------------------------------
 class GenKeys :
     """
-    Class to help create and out of tree kernel signing keys
+    Class to create out of tree kernel signing keys
     """
     def __init__(self) :
         """
@@ -134,7 +120,7 @@ class GenKeys :
         num_to_match = len(to_match)
         num_with_errors = 0
         for kconfig in self.kconfig_list:
-            fobj = open_file(kconfig, 'r')
+            fobj = utils.open_file(kconfig, 'r')
             if fobj:
                 conf_items = fobj.readlines()
                 fobj.close()
@@ -192,7 +178,7 @@ class GenKeys :
             #
             signing_key = '"' + signing_key + '"\n'
         else:
-            print ('Missing : {keycur}')
+            print (f'Missing : {keycur}')
             return not all_ok
 
         for kconfig in self.kconfig_list:
@@ -216,7 +202,7 @@ class GenKeys :
         conf_name = 'CONFIG_SYSTEM_TRUSTED_KEYS='
 
         # read existing config
-        fobj = open_file(kconfig_path, 'r')
+        fobj = utils.open_file(kconfig_path, 'r')
         if fobj:
             kconfig_rows = fobj.readlines()
             fobj.close()
@@ -240,9 +226,9 @@ class GenKeys :
         if changed:
             new_config = ''.join(new_rows)
             if self.verb:
-                print ('Updating config: ' + kconfig_path)
+                print (f'Updating config: {kconfig_path}')
 
-            fobj = open_file(kconfig_path_temp, 'w')
+            fobj = utils.open_file(kconfig_path_temp, 'w')
             if fobj:
                 #for row in new_rows:
                 #    fobj.write(row)
@@ -334,14 +320,14 @@ class GenKeys :
         # Put khash and ktype files in key dir.
         # The module signing script will read the hash/ktype
         #
-        fobj = open_file(khash_file,'w')
+        fobj = utils.open_file(khash_file,'w')
         if fobj:
             fobj.write(self.khash + '\n')
             fobj.close()
         else:
             print (f'Failed to write : {khash_file}')
 
-        fobj = open_file(ktype_file,'w')
+        fobj = utils.open_file(ktype_file,'w')
         if fobj:
             fobj.write(self.ktype + '\n')
             fobj.close()

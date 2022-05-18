@@ -58,8 +58,7 @@ class KernelModSigner:
      Once instantiated use to sign module(s)
      Public methods: sign_module()
     """
-
-    def __init__(self, me):
+    def __init__(self, myname):
         self.signer = None
         self.key = None
         self.crt = None
@@ -69,7 +68,7 @@ class KernelModSigner:
         # extract kernel directory from me which is the full path to calling executable
         # Provides path to kernel signer and to keys
         #
-        my_path = os.path.realpath(me)
+        my_path = os.path.realpath(myname)
         my_dir = os.path.dirname(my_path)
         build_dir = os.path.dirname(my_dir)
 
@@ -81,11 +80,12 @@ class KernelModSigner:
 
         # missing khash - temp backward compat only - remove at some point
         if os.path.exists(khash_file) :
-            try:
-                with open(khash_file, 'r') as fp:
-                    khash = fp.read()
-                    khash = khash.strip()
-            except OSError as _err:
+            fobj = utils.open_file(khash_file, 'r')
+            if fobj:
+                khash = fobj.read()
+                khash = khash.strip()
+                fobj.close()
+            else:
                 khash = 'sha512'
         else:
             khash = 'sha512'
@@ -108,10 +108,10 @@ class KernelModSigner:
          Does the actual signing of a module file
         """
         pargs = [self.signer, self.khash, self.key, self.crt, mod_path]
-        [rc, _sout, _serr] = utils.run_prog(pargs)
-        if rc != 0:
+        [retc, _sout, _serr] = utils.run_prog(pargs)
+        if retc != 0:
             print ('Signing failed')
-        return rc
+        return retc
 
 # -------------------------------------------------------------------------------------------
 # Class ModuleTool
@@ -130,8 +130,8 @@ def strip_sig(mod_path):
      Strips out signature from module file
     """
     pargs =  ['/usr/bin/strip', '--strip-debug', mod_path]
-    [rc, _output, _errors] = utils.run_prog(pargs)
-    return rc
+    [retc, _output, _errors] = utils.run_prog(pargs)
+    return retc
 
 class ModuleTool:
     """
@@ -176,11 +176,11 @@ class ModuleTool:
         sign_flag = b'Module signature'
         chunk = 100
         size = len(self.data)
-        b0 = 0
-        b1 = size-1
+        byte_0 = 0
+        byte_1 = size-1
         if size - chunk >= chunk:
-            b0 = size - chunk
-        found = self.data.find(sign_flag, b0, b1)
+            byte_0 = size - chunk
+        found = self.data.find(sign_flag, byte_0, byte_1)
         if found >= 0:
             self.signed = True
         return self.signed
@@ -191,11 +191,11 @@ class ModuleTool:
         """
         if self.data:
             return self.data
-        try:
-            with open(self.mod_path, 'rb') as fp:
-                raw_data = fp.read()
-        except OSError as err:
-            print(f'Failed to read : {self.mod_path}. Err {err}')
+        fobj = utils.open_file(self.mod_path, 'rb')
+        if fobj:
+            raw_data = fobj.read()
+            fobj.close()
+        else:
             return None
 
         # decompress if needed - allowed extensions pre-validated in init()
@@ -219,38 +219,39 @@ class ModuleTool:
         """
          sign temp file, compress if needed  and rename to orig.
         """
-        ok = True
+        okay = True
         data = self.read()
         if not data:
-            return not ok
+            return not okay
 
         ftmp = str(uuid.uuid4())
         ptmp = os.path.join(self.mod_dir, ftmp)
-        try:
-            with open(ptmp, 'wb') as fp:
-                fp.write(data)
-        except OSError as err:
-            print(f'Failed to create temp mod file: Err {err}')
-            return not ok
+        fobj = utils.open_file(ptmp, 'wb')
+        if fobj:
+            fobj.write(data)
+            fobj.close()
+        else:
+            return not okay
 
         if self.is_signed():
             ret = strip_sig(ptmp)
             if ret != 0:
                 print ('Failed to strip temp file')
                 utils.remove_file(ptmp)
-                return not ok
+                return not okay
 
         ret = self.signer.sign_module(ptmp)
         if ret != 0:
             utils.remove_file(ptmp)
-            return not ok
+            return not okay
 
         if self.compress:
-            try:
-                with open(ptmp, 'rb') as fp:
-                    raw_data = fp.read()
-            except OSError as err:
-                print(f'Failed to read temp mod file: Err {err}')
+            fobj = utils.open_file(ptmp, 'rb')
+            if fobj:
+                raw_data = fobj.read()
+                fobj.close()
+            else:
+                return not okay
 
             match self.fext:
                 case '.zst' :
@@ -260,13 +261,13 @@ class ModuleTool:
                     mod_data = lzma.compress(raw_data)
                 case  '.gz' :
                     mod_data = gzip.compress(raw_data)
-            try:
-                with open(ptmp, 'wb') as fp:
-                    fp.write(mod_data)
-            except OSError as err:
-                print(f'Failed to write compressed temp file {ptmp}: Err {err}')
+            fobj = utils.open_file(ptmp, 'wb')
+            if fobj:
+                fobj.write(mod_data)
+                fobj.close()
+            else:
                 utils.remove_file(ptmp)
-                return not ok
+                return not okay
 
         os.rename (ptmp, self.mod_path)
-        return ok
+        return okay
