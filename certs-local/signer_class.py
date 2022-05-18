@@ -85,7 +85,7 @@ class KernelModSigner:
                 with open(khash_file, 'r') as fp:
                     khash = fp.read()
                     khash = khash.strip()
-            except IOError as _err:
+            except OSError as _err:
                 khash = 'sha512'
         else:
             khash = 'sha512'
@@ -194,7 +194,7 @@ class ModuleTool:
         try:
             with open(self.mod_path, 'rb') as fp:
                 raw_data = fp.read()
-        except IOError as err:
+        except OSError as err:
             print(f'Failed to read : {self.mod_path}. Err {err}')
             return None
 
@@ -229,7 +229,7 @@ class ModuleTool:
         try:
             with open(ptmp, 'wb') as fp:
                 fp.write(data)
-        except IOError as err:
+        except OSError as err:
             print(f'Failed to create temp mod file: Err {err}')
             return not ok
 
@@ -249,7 +249,7 @@ class ModuleTool:
             try:
                 with open(ptmp, 'rb') as fp:
                     raw_data = fp.read()
-            except IOError as err:
+            except OSError as err:
                 print(f'Failed to read temp mod file: Err {err}')
 
             match self.fext:
@@ -263,7 +263,7 @@ class ModuleTool:
             try:
                 with open(ptmp, 'wb') as fp:
                     fp.write(mod_data)
-            except IOError as err:
+            except OSError as err:
                 print(f'Failed to write compressed temp file {ptmp}: Err {err}')
                 utils.remove_file(ptmp)
                 return not ok
