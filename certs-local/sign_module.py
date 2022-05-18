@@ -66,11 +66,11 @@ def modules_from_dir(mdir):
     #
 
     if not os.path.exists(mdir):
-        print ('Module directory bad : ' + mdir)
+        print (f'Module directory bad : {mdir}')
         return None
 
     if not os.path.isdir(mdir):
-        print ('Module directory must be a directory: ' + mdir)
+        print (f'Module directory must be a directory: {mdir}')
         return None
 
     mod_dir = os.path.abspath(mdir)
@@ -93,26 +93,26 @@ def modules_from_dir(mdir):
 #  1. 1 or more modules as list
 #  2. -d <module dir>
 #
-def parse_args(av):
+def parse_args(arv):
     """
      Get modules to be signed
     """
-    me = av[0]
-    if len(av) == 1:
+    myname = arv[0]
+    if len(arv) == 1:
         print ('No modules to sign')
-        return me, None
+        return myname, None
 
-    if av[1] == '-d' :
-        if len(av) >= 3:
-            mod_dir = av[2]
+    if arv[1] == '-d' :
+        if len(arv) >= 3:
+            mod_dir = arv[2]
         else:
             print ('Missing module dir after -d')
-            return me, None
+            return myname, None
         modules = modules_from_dir(mod_dir)
     else:
-        modules = av[1:]
+        modules = arv[1:]
 
-    return me,modules
+    return myname,modules
 
 
 def main():
@@ -122,8 +122,8 @@ def main():
     # test / debug
     # pdb.set_trace()
 
-    av = sys.argv
-    me,modules = parse_args(av)
+    arv = sys.argv
+    myname,modules = parse_args(arv)
     if not modules :
         print ('No modules to sign')
         return
@@ -131,7 +131,7 @@ def main():
     #
     # Instantiate signer
     #
-    signer = KernelModSigner(me)
+    signer = KernelModSigner(myname)
     if not signer.initialized:
         return
 
@@ -141,12 +141,12 @@ def main():
     for mod in modules:
         mod_tool = ModuleTool(signer, mod)
         if mod_tool.path_ok :
-            ok = mod_tool.sign()
-            if not ok:
-                print ('Problem signing : ' + mod)
+            okay = mod_tool.sign()
+            if not okay:
+                print (f'Problem signing : {mod}')
                 return
         else:
-            print ('Module not found : ' + mod)
+            print (f'Module not found : {mod}')
 
     return
 

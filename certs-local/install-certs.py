@@ -28,16 +28,16 @@ import utils
 #
 # Extract self dir and dest dir
 #
-def _parse_args(av):
+def _parse_args(arv):
 
     err = None
     src_dir = None
     dst_dir = None
     # check dest dir
-    if len(av) < 2:
+    if len(arv) < 2:
         err = 'Missing destination dir'
 
-    dst_dir = av[1]
+    dst_dir = arv[1]
     if os.path.exists(dst_dir) and not os.path.isdir(dst_dir):
         err = 'Bad destination - is not a dir : ' + dst_dir
 
@@ -45,22 +45,22 @@ def _parse_args(av):
         print (err)
     else:
         os.makedirs(dst_dir, exist_ok=True)
-        src_dir = os.path.dirname(av[0])
+        src_dir = os.path.dirname(arv[0])
         src_dir = os.path.abspath(src_dir)
 
     return src_dir, dst_dir
 
 def _run_prog_verb(pargs):
 
-    ok = True
-    [rc, _stdout, stderr] = utils.run_prog(pargs)
-    if rc != 0:
-        ok = False
+    okay = True
+    [retc, _stdout, stderr] = utils.run_prog(pargs)
+    if retc != 0:
+        okay = False
         print ('Error  with : ' + ' ' .join(pargs))
         if stderr:
             print(stderr)
 
-    return ok
+    return okay
 
 def main():
     """
@@ -85,8 +85,8 @@ def main():
     flist = [cur_path, key_dir, signer, signer_class, futils]
     pargs = ['/usr/bin/rsync', '-a'] + flist + [dst_dir]
 
-    ok = _run_prog_verb(pargs)
-    if not ok:
+    okay = _run_prog_verb(pargs)
+    if not okay:
         return
 
     return
