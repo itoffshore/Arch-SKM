@@ -1,4 +1,5 @@
 [![shellcheck](https://github.com/itoffshore/Arch-SKM/actions/workflows/shellcheck.yml/badge.svg)](https://github.com/itoffshore/Arch-SKM/actions/workflows/shellcheck.yml)
+[![Pylint](https://github.com/itoffshore/Arch-SKM/actions/workflows/pylint.yml/badge.svg)](https://github.com/itoffshore/Arch-SKM/actions/workflows/pylint.yml)
 
 
 ### :lock: Arch Linux Sign Modules:
