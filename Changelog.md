@@ -1,5 +1,5 @@
 Version [0.3.5]                                                       - 20220519
- - adds Arch-SKM 2.3.5 (more code tidy up)
+ - adds Arch-SKM 2.3.6 (more code tidy up)
 
 Version [0.3.4]                                                       - 20220505
  - adds Arch-SKM 2.3.2 (code reorganization / pylint improvements)
