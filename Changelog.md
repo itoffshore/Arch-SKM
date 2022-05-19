@@ -1,3 +1,13 @@
+Version [0.3.5]                                                       - 20220519
+ - adds Arch-SKM 2.3.5 (more code tidy up)
+
+Version [0.3.4]                                                       - 20220505
+ - adds Arch-SKM 2.3.2 (code reorganization / pylint improvements)
+ - docs improved for arch-sign-modules
+
+Version [0.3.3]                                                       - 20220505
+ - minor doc update
+
 Version [0.3.2]                                                       - 20220504
  - includes Gene's Arch-SKM 2.2.0 pure python release
 
