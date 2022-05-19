@@ -379,7 +379,8 @@ install_kernel() {
 	echo
 
 	# overwrite required for multiple signed kernels
-	sudo pacman -U "$kernel_install" "$header_install" --overwrite ${ksign}.conf --overwrite ${ksign}.sh
+	# pacman & paccache do not like quoted vars required by shellcheck hence eval here
+	eval sudo pacman -U "$kernel_install" "$header_install" --overwrite ${ksign}.conf --overwrite ${ksign}.sh
 }
 
 update_kernel() {
