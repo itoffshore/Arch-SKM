@@ -276,8 +276,8 @@ remove_old_pkgs() {
 		ask "Remove packages ? [y/N] [ default: --dry-run ] : "; read -r ans; echo
 
 		case "$ans" in
-			y|Y) paccache -rvk${keep} -c "$pkgdir" "$target" ;;
-			  *) paccache -dvk${keep} -c "$pkgdir" "$target" ;;
+			y|Y) eval paccache -rvk${keep} -c "$pkgdir" "$target" ;;
+			  *) eval paccache -dvk${keep} -c "$pkgdir" "$target" ;;
 		esac
 	else
 		warning "Install optional depends pacman-contrib for option -o to work."

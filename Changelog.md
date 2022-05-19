@@ -1,3 +1,6 @@
+Version [0.3.6]                                                       - 20220519
+ - small bugfix for -o option broken by changes for shellcheck tests
+
 Version [0.3.5]                                                       - 20220519
  - adds Arch-SKM 2.3.6 (more code tidy up)
 
