@@ -71,7 +71,10 @@ def open_file(path, mode):
     Returns file object
     """
     try:
-        fobj = open(path, mode, encoding='utf-8')
+        if 'b' in mode:
+            fobj = open(path, mode)
+        else:
+            fobj = open(path, mode, encoding='utf-8')
 
     except OSError as err:
         print(f'Error opening {path} : {err}')
