@@ -125,7 +125,8 @@ check_config() {
 	fi
 
 	# check editors if in a graphical session
-	if [[ ! $DISPLAY && $XDG_VTNR -le 3 ]]; then
+	# https://wiki.archlinux.org/title/Xinit#Autostart_X_at_login
+	if [ -n "${DISPLAY}" ] && [ "${XDG_VTNR}" -ne 1 ]; then
 		for x in $GUI_EDITOR $CONSOLE_EDITOR; do
 			if ! type "$x" > /dev/null 2>&1; then
 				error "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')"
