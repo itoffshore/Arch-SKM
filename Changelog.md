@@ -1,3 +1,6 @@
+Version [0.4]                                                         - 20220520
+ - add headless / terminal support (now automated support is well tested)
+
 Version [0.3.8]                                                       - 20220520
  - update graphical session detection in check_config()
 
