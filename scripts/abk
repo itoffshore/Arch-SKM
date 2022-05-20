@@ -114,8 +114,17 @@ check_kernel() {
 	fi
 }
 
+check_session() {
+	# https://wiki.archlinux.org/title/Xinit#Autostart_X_at_login
+	if [ -n "${DISPLAY}" ] && [ "${XDG_VTNR}" -eq 1 ]; then
+		echo "graphical"
+	else
+		echo "terminal"
+	fi
+}
+
 check_config() {
-	local x=
+	local x= editor_list=
 
 	# check PKGBUILD configuration dir
 	if [ ! -d "$BUILD_DIR" ]; then
@@ -124,16 +133,19 @@ check_config() {
 		fi
 	fi
 
-	# check editors if in a graphical session
-	# https://wiki.archlinux.org/title/Xinit#Autostart_X_at_login
-	if [ -n "${DISPLAY}" ] && [ "${XDG_VTNR}" -ne 1 ]; then
-		for x in $GUI_EDITOR $CONSOLE_EDITOR; do
-			if ! type "$x" > /dev/null 2>&1; then
-				error "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')"
-				error "See also: $README"; die
-			fi
-		done
+	# check installed editors
+	if [ "$(check_session)" = "graphical" ]; then
+		editor_list="$GUI_EDITOR $CONSOLE_EDITOR"
+	else
+		editor_list="$CONSOLE_EDITOR"
 	fi
+
+	for x in ${editor_list}; do
+		if ! type "$x" > /dev/null 2>&1; then
+			error "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')"
+			error "See also: $README"; die
+		fi
+	done
 }
 
 check_pkgver() {
@@ -428,10 +440,6 @@ update_kernel() {
 		esac
 	fi
 
-	# edit files
-#	$GUI_EDITOR $EXAMPLES &
-#	$CONSOLE_EDITOR $KBUILD_DIR/PKGBUILD
-
 	# experimental automated update
 	patch_pkgbuild
 }
@@ -623,21 +631,29 @@ patch_pkgbuild() {
 			ask "Remove $patch_file ? [Y/n] : "
 
 			case "$ans" in
-			    "") sudo rm -f "$patch_file"
-				msg "Removed $patch_file & restarting update_kernel()"
+			   Y*|y*|"") sudo rm -f "$patch_file"
+				     msg "Removed $patch_file & restarting update_kernel()"
 
-				# next time branches to 'else'
-				update_kernel $REPO nobackup
-				;;
-			     *) error "Exiting with patch errors on $pkgbuild"; die ;;
+				     # next time branches to 'else'
+				     update_kernel $REPO nobackup
+				     ;;
+			          *) error "Exiting with patch errors on $pkgbuild"; die ;;
 			esac
 		fi
 	else
+		# option to run patch_generator()
 		error "No patch exists for kernel: $KERNEL"
-		ask "Start $GUI_EDITOR / $CONSOLE_EDITOR & generate a new patchset ? [Y/n] : "; read -r ans
+
+		if [ "$(check_session)" = "graphical" ]; then
+			ask "Start $GUI_EDITOR / $CONSOLE_EDITOR & generate a new patchset ? [Y/n] : "
+		else
+			ask "Start $CONSOLE_EDITOR & generate a new patchset ? [Y/n] : "
+		fi
+
+		read -r ans
 
 		case "$ans" in
-			"") patch_generator ;;
+		  Y*|y*|"") patch_generator ;;
 			 *) error "Exiting with unpatched $pkgbuild" ; die ;;
 		esac
 	fi
@@ -651,13 +667,22 @@ patch_generator() {
 	cp PKGBUILD PKGBUILD.orig
 
 	# re-run manual step
-	edit_pkgbuild
+	if [ "$(check_session)" = "graphical" ]; then
+		edit_pkgbuild
+	else
+		# terminal session
+		msg2 "In separate terminals edit: $pkgbuild"
+		msg2 "& consult: $EXAMPLES"
+		msg2 "After making changes press <ENTER> here to generate a new patch."
+		read -r ans
+	fi
 
+	# create new patch
 	diff -up PKGBUILD.orig PKGBUILD > "$KERNEL".patch
 	ask "Copy $KERNEL.patch to $patch_dir ? [Y/n] : "; read -r ans
 
 	case "$ans" in
-		"") sudo cp "$KERNEL".patch $patch_dir
+	  Y*|y*|"") sudo cp "$KERNEL".patch $patch_dir
 		    sudo chmod 644 $patch_dir/"$KERNEL".patch
 		    msg "To test the patch just re-run: $0 -u $KERNEL"
 		    msg "If the new patch works please consider making a Pull Request ;o)"
