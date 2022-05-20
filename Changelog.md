@@ -1,3 +1,6 @@
+Version [0.3.6]                                                       - 20220520
+ - small bugfix for check_config() broken by changes for shellcheck tests
+
 Version [0.3.6]                                                       - 20220519
  - small bugfix for -o option broken by changes for shellcheck tests
 
