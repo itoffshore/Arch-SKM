@@ -1,3 +1,6 @@
+Version [0.3.7]                                                       - 20220520
+ - update graphical session detection in check_config()
+
 Version [0.3.6]                                                       - 20220520
  - small bugfix for check_config() broken by changes for shellcheck tests
 
