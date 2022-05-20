@@ -127,7 +127,7 @@ check_config() {
 	# check editors if in a graphical session
 	if [[ ! $DISPLAY && $XDG_VTNR -le 3 ]]; then
 		for x in $GUI_EDITOR $CONSOLE_EDITOR; do
-			if ! type "$x" 2>&1 /dev/null; then
+			if ! type "$x" > /dev/null 2>&1; then
 				error "Please set suitable \$EDITOR VARS in $USER_CONFIG (or install '$x')"
 				error "See also: $README"; die
 			fi
