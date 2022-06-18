@@ -26,7 +26,7 @@ With **DKMS** support for the following _Out of Tree_ Kernel Modules:
 
 This AUR Package [arch-sign-modules](https://aur.archlinux.org/packages/arch-sign-modules/) provides the `abk` helper script for [Gene's Arch-SKM](https://github.com/gene-git/Arch-SKM) & packages his python scripts. 
 
-* Gene's original manual steps are set out further below in the context of building officialy supported Arch Linux kernels.
+* Gene's original manual steps are set out further below in the context of building officially supported Arch Linux kernels.
 * See also [Gene's README](https://github.com/gene-git/Arch-SKM/blob/master/README.md) for technical details of his **Signed Kernel Module** implementation.
 * Kernel modules are now signed with `ECDSA` signatures in pure python.
 
