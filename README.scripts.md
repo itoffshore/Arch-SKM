@@ -54,6 +54,7 @@ Configured kernels:
 * linux
 * linux-lts
 * linux-hardened
+* linux-hardened-git
 * linux-zen
 * linux-hardened-cacule
 * linux-xanmod-cacule
@@ -74,6 +75,7 @@ Configured kernels:
 * linux-amd
 * linux-ck
 * linux-hardened
+* linux-hardened-git
 * linux-libre
 * linux-lts
 * linux
