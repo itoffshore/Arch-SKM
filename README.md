@@ -10,6 +10,7 @@
 * `linux`
 * `linux-lts`
 * `linux-hardened`
+* `linux-hardened-git`
 * `linux-zen`
 * `linux-amd`
 * `linux-ck`
