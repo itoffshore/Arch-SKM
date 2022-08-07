@@ -1,5 +1,5 @@
---- PKGBUILD.txt	2022-05-04 02:34:22.925648854 +0100
-+++ PKGBUILD	2022-05-04 02:43:11.856448499 +0100
+--- PKGBUILD.orig	2022-08-07 22:36:35.609523452 +0100
++++ PKGBUILD	2022-08-07 22:39:21.205594685 +0100
 @@ -9,7 +9,7 @@ arch=(x86_64)
  license=(GPL2)
  makedepends=(
@@ -43,18 +43,18 @@
 +
 +# cd $_srcname
  
-   # fix NFSv4 mounting issue regression - FS#73838 / FS#73860
-   # https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/patch/?id=6f2836341d8a39e1e000572b10959347d7e61fd9
-@@ -75,7 +102,7 @@ prepare() {
+   echo "Setting version..."
+   scripts/setlocalversion --save-scmversion
+@@ -70,7 +97,7 @@ prepare() {
+ 
  build() {
    cd $_srcname
-   make all
--  make htmldocs
-+# make htmldocs
+-  make htmldocs all
++  make all
  }
  
  _package() {
-@@ -186,6 +213,33 @@ _package-headers() {
+@@ -181,6 +208,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -88,7 +88,7 @@
  }
  
  _package-docs() {
-@@ -207,7 +261,7 @@ _package-docs() {
+@@ -202,7 +256,7 @@ _package-docs() {
    ln -sr "$builddir/Documentation" "$pkgdir/usr/share/doc/$pkgbase"
  }
  
