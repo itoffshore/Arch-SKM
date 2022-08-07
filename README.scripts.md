@@ -4,7 +4,7 @@ BUILD_DIR=~/build
 GUI_EDITOR=mousepad
 CONSOLE_EDITOR=nano
 MAIN_KERNELS=linux linux-hardened linux-lts linux-zen
-AUR_KERNELS=linux-hardened-cacule linux-xanmod-cacule linux-ck linux-amd
+AUR_KERNELS=linux-ck linux-amd
 MAKEPKG_DIR=/tmp/makepkg
 ```
 Edit to suit your `local` environment.
@@ -56,8 +56,6 @@ Configured kernels:
 * linux-hardened
 * linux-hardened-git
 * linux-zen
-* linux-hardened-cacule
-* linux-xanmod-cacule
 * linux-ck
 * linux-libre
 ```
