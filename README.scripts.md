@@ -42,9 +42,9 @@ The build stage can assume YES for running automated
 
 Automated mode can also be enabled by adding AUTOMATED=Y to your ~/.config/abk.conf
 
-To rebuild a previous kernel PKGBUILD that abk archived in \$BUILD_DIR/kernel-ver.tar.xz:
+To rebuild a previous kernel PKGBUILD that abk archived in $BUILD_DIR/kernel-ver.tar.xz:
 ----------------------------------------------------------------------------------------
- $script -r linux-hardened
+ abk -r linux-hardened
 
 Utilities:
 -----------------------------------------------------
