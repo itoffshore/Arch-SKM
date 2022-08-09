@@ -17,6 +17,7 @@ Usage: abk [OPTIONS]
 	[ -u ] : update [ kernel-name ]
 	[ -b ] : build [ kernel-name ]
 	[ -i ] : install [ kernel-name / AUR pkgname ]
+	[ -r ] : rebuild [ kernel-name ]
 	[ -y ] : yes ( assume YES answers during build stage )
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
 	[ -s ] : clean makepkg source dir selectively ( $SRCDEST )
@@ -41,6 +42,10 @@ The build stage can assume YES for running automated
 
 Automated mode can also be enabled by adding AUTOMATED=Y to your ~/.config/abk.conf
 
+To rebuild a previous kernel PKGBUILD that abk archived in \$BUILD_DIR/kernel-ver.tar.xz:
+----------------------------------------------------------------------------------------
+ $script -r linux-hardened
+
 Utilities:
 -----------------------------------------------------
  abk -c /path/to/somewhere
@@ -60,6 +65,14 @@ Configured kernels:
 * linux-libre
 ```
 ---
+
+**Rebuild previous kernels**
+-----
+
+`arch-sign-modules` since version `0.2.61` by default creates `tar.xz` archives of the previously built `PKGBUILD`.
+
+* version `0.5.0` adds the option to rebuild a previously archived `PKGBUILD` via:
+* `abk -r kernel-variant` (& choose the archived kernel version from the generated menu)
 
 **Automated Mode**
 -----

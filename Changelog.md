@@ -1,3 +1,18 @@
+Version [0.5]                                                         - 20220809
+ - add support for rebuilding previously archived kernel PKGBUILDs
+
+Version [0.4.5]                                                       - 20220807
+ - update linux-lts patch
+
+Version [0.4.4]                                                       - 20220804
+ - add patch support for linux-hardened-git
+
+Version [0.4.3]                                                       - 20220713
+ - fix linux-hardened patch
+
+Version [0.4.1]                                                       - 20220627
+ - small bugfix for linux-zen.patch
+
 Version [0.4]                                                         - 20220520
  - add headless / terminal support (now automated support is well tested)
 

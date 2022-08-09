@@ -6,7 +6,7 @@
 # --------------------------------------
 # https://github.com/itoffshore/Arch-SKM
 #
-# Stuart Cardall 20220503
+# Stuart Cardall 20220809
 #
 ############################################
 ## USER configuration ######################
@@ -52,6 +52,7 @@ Usage: $script [OPTIONS]
 	[ -u ] : update [ kernel-name ]
 	[ -b ] : build [ kernel-name ]
 	[ -i ] : install [ kernel-name / AUR pkgname ]
+	[ -r ] : rebuild [ kernel-name ]
 	[ -y ] : yes ( assume YES answers during build stage )
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
 	[ -s ] : clean makepkg source dir selectively ( $(parse_makepkg SRCDEST) )
@@ -70,11 +71,15 @@ The -i option can also print a menu with version choices for any manually built 
 --------------------------------------------------------------------------------------------
  $script -i AUR-pkgname
 
-The build stage can assume YES for running automated
-----------------------------------------------------
+The build stage can assume YES for running automated:
+-----------------------------------------------------
  $script -y -b linux-hardened
 
 Automated mode can also be enabled by adding AUTOMATED=Y to your ~/.config/abk.conf
+
+To rebuild a previous kernel PKGBUILD that abk archived in \$BUILD_DIR/kernel-ver.tar.xz:
+----------------------------------------------------------------------------------------
+ $script -r linux-hardened
 
 Utilities:
 --------------------------
@@ -488,6 +493,52 @@ build_kernel() {
 	done
 }
 
+rebuild_kernel() {
+	# display list of archived PKGBUILDs
+	local pkgtype='Archived PKGBUILD' kernel_rebuild=
+	local kern_list= kern_ctr=0 pkg= ans= tmp=
+
+	tmp=$(mktemp)
+
+	kern_list=$(find "$BUILD_DIR" -maxdepth 1 -type f -regextype posix-extended \
+			-regex ".*$KERNEL\-[0-9\.]+.*.tar.xz")
+
+	# print kernel archive menu
+	if [ -n "$kern_list" ]; then
+		echo
+		for pkg in $kern_list; do
+			kern_ctr=$(( kern_ctr +1 ))
+			plain "$kern_ctr) : $(basename "$pkg")"
+		done
+	else
+		error "No rebuildable ${pkgtype}s found for: $KERNEL"; die
+	fi
+
+	# read choice
+	if [ $kern_ctr -gt 1 ]; then
+		ans=0
+		echo
+
+		while [ $ans  -lt 1 ] || [ $ans -gt $kern_ctr ]; do
+			ask "Choose $pkgtype to rebuild [1 - $kern_ctr] : "; read -r ans
+			ans=$(echo "$ans" | tr -cd "[:digit:]")
+			if [ -z "$ans" ]; then echo; warning "No $pkgtype chosen: quitting."; die; fi
+
+			# shellcheck disable=SC2086 # quoting $kern_list breaks awk
+			kernel_rebuild=$(echo $kern_list | awk -v var="$ans" '{print $var}')
+		done
+	else
+		kernel_rebuild=$pkg
+	fi
+
+	echo
+
+	# unpack archived PKGBUILD & run a build
+	archive_config
+	tar -xJf "$kernel_rebuild"
+	time build_kernel
+}
+
 clean_dir() {
 	local dir=$1 clean_type=$2 tmp= ans=
 
@@ -735,7 +786,7 @@ get_options() {
 	# check build dir & editors
 	check_config
 
-	while getopts ":u:b:i:c:w:hsloy" opt
+	while getopts ":u:b:i:r:c:w:hsloy" opt
 
 	do
 		if [ -n "${OPTARG}" ]; then
@@ -748,6 +799,7 @@ get_options() {
 			u) KERNEL=${OPTARG}; check_kernel update; update_kernel $REPO ;;
 			b) KERNEL=${OPTARG}; check_kernel build; time build_kernel ;;
 			i) KERNEL=${OPTARG}; check_kernel install; install_kernel ;;
+			r) KERNEL=${OPTARG}; rebuild_kernel ;;
 			y) AUTOMATED='Y' ;;
 			c) check_args "$opt" dir "$arg" ; clean_dir "$arg" sources ;;
 			s) clean_sources ;;
