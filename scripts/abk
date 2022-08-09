@@ -16,7 +16,7 @@ BUILD_DIR=~/build
 GUI_EDITOR=mousepad
 CONSOLE_EDITOR=nano
 MAIN_KERNELS="linux linux-hardened linux-lts linux-zen"
-AUR_KERNELS="linux-hardened-cacule linux-xanmod-cacule linux-ck linux-libre"
+AUR_KERNELS="linux-ck linux-libre"
 MAKEPKG_DIR=/tmp/makepkg
 AUTOMATED="N"
 ## custom USER VARS are sourced
