@@ -99,6 +99,11 @@ check_kernel() {
 	# sets global vars $REPO $KBUILD_DIR after cmdline parsed
 	KBUILD_DIR=${BUILD_DIR}/${KERNEL}
 
+	# rebuild checks
+	if [ "$calling_fn" = "rebuild" ]; then
+		return
+	fi
+
 	# build checks
 	if [ "$calling_fn" = "build" ] && [ ! -d "$KBUILD_DIR" ]; then
 		error "No config to build kernel '$KERNEL' => update step not run ?"; die
@@ -168,7 +173,7 @@ check_pkgver() {
 		# shellcheck disable=SC1090 # $tmp location is random
 		. "$tmp" && rm -f "$tmp"
 	else
-		error "No PKGBUILD to check version"
+		error "No PKGBUILD to check version"; die
 	fi
 }
 
@@ -501,7 +506,7 @@ rebuild_kernel() {
 	tmp=$(mktemp)
 
 	kern_list=$(find "$BUILD_DIR" -maxdepth 1 -type f -regextype posix-extended \
-			-regex ".*$KERNEL\-[0-9\.]+.*.tar.xz")
+			-regex ".*$KERNEL\-[0-9\.]+.*.tar.xz" | sort)
 
 	# print kernel archive menu
 	if [ -n "$kern_list" ]; then
@@ -799,7 +804,7 @@ get_options() {
 			u) KERNEL=${OPTARG}; check_kernel update; update_kernel $REPO ;;
 			b) KERNEL=${OPTARG}; check_kernel build; time build_kernel ;;
 			i) KERNEL=${OPTARG}; check_kernel install; install_kernel ;;
-			r) KERNEL=${OPTARG}; rebuild_kernel ;;
+			r) KERNEL=${OPTARG}; check_kernel rebuild; rebuild_kernel ;;
 			y) AUTOMATED='Y' ;;
 			c) check_args "$opt" dir "$arg" ; clean_dir "$arg" sources ;;
 			s) clean_sources ;;

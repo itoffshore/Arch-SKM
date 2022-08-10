@@ -1,3 +1,6 @@
+Version [0.5.1]                                                       - 20220810
+ - small bugfix for rebuilding kernel PKGBUILDs
+
 Version [0.5]                                                         - 20220809
  - add support for rebuilding previously archived kernel PKGBUILDs
 
