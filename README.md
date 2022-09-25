@@ -22,6 +22,7 @@ With **DKMS** support for the following _Out of Tree_ Kernel Modules:
 * [ZFS](https://aur.archlinux.org/packages/zfs-dkms/)
 * [Nvidia](https://archlinux.org/packages/extra/x86_64/nvidia-dkms/)
 * [Linux Kernel Runtime Guard](https://aur.archlinux.org/packages/lkrg-dkms/)
+* [acpi_call](https://archlinux.org/packages/community/any/acpi_call-dkms/)
 
 ---
 
