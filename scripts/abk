@@ -6,7 +6,7 @@
 # --------------------------------------
 # https://github.com/itoffshore/Arch-SKM
 #
-# Stuart Cardall 20220809
+# Stuart Cardall 20221018
 #
 ############################################
 ## USER configuration ######################
@@ -160,7 +160,7 @@ check_config() {
 
 check_pkgver() {
 	# some AUR packages use variables for $pkgver
-	# sourcing a PKGBUILD with functon names starting with an underscore gives errors
+	# sourcing a PKGBUILD with function names starting with an underscore gives errors
 	local pkgbuild=${KBUILD_DIR}/PKGBUILD search_str='prepare()'
 	local line= tmp=
 
@@ -173,7 +173,8 @@ check_pkgver() {
 		# shellcheck disable=SC1090 # $tmp location is random
 		. "$tmp" && rm -f "$tmp"
 	else
-		error "No PKGBUILD to check version"; die
+		warning "No PKGBUILD to check version"
+		return 1
 	fi
 }
 
@@ -450,7 +451,7 @@ update_kernel() {
 		esac
 	fi
 
-	# experimental automated update
+	# automated update
 	patch_pkgbuild
 }
 
