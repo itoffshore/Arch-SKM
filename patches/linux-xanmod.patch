@@ -1,0 +1,36 @@
+--- PKGBUILD.orig	2022-10-19 00:36:07.119531703 +0100
++++ PKGBUILD	2022-10-19 00:38:16.515737400 +0100
+@@ -220,6 +220,33 @@ prepare() {
+ 
+   # save configuration for later reuse
+   cat .config > "${SRCDEST}/config.last"
++
++  # Out-of-tree module signing
++  #
++  ######################################################
++  # this is added at the start of prepare() & replaces #
++  # 'cd $_srcname'                                     #
++  ######################################################
++  # uncomment for linux-xanmod-cacule & some other AUR kernels
++  # to match the Package Maintainer's variable for the kernel
++  # sources directory.
++  #
++  # local _srcname=linux-${_major}
++
++  msg2 "Rebuilding local signing key..."
++
++  cp -rf /usr/src/certs-local ./
++  cd certs-local
++
++  msg2 "Updating kernel config with new key..."
++
++  # NB: config path must be quoted for file globbing to work
++  # some kernels have multiple config files (e.g linux-libre)
++  # to see configurable options run:
++  # /usr/src/certs-local/genkeys.py -h
++  ./genkeys.py -v --config '../.config*'
++
++  #cd ../$_srcname
+ }
+ 
+ build() {
