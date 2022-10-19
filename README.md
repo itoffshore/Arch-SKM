@@ -15,6 +15,7 @@
 * `linux-amd`
 * `linux-ck`
 * `linux-libre`
+* `linux-xanmod`
 * `AUR kernels`
 
 With **DKMS** support for the following _Out of Tree_ Kernel Modules:
