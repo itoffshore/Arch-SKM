@@ -1,3 +1,9 @@
+Version [0.5.3]                                                       - 20221104
+ - update linux-hardened-git patch
+
+Version [0.5.2]                                                       - 20221019
+ - add linux-xanmod support
+
 Version [0.5.1]                                                       - 20220810
  - small bugfix for rebuilding kernel PKGBUILDs
 
