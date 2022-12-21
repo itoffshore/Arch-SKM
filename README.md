@@ -42,7 +42,7 @@ Since `abk` version `0.3.2` the initial update stage will first try to automatic
 
 ![Automated Upgrade](/images/update-stage.png)
 
-Now that **automated mode** is well tested `abk` version `0.4` can be run on headless systems.
+Now that **automated mode** is well tested `abk` version `0.4+` can be run on headless systems.
 
 * [README.scripts.md](https://github.com/itoffshore/Arch-SKM/blob/master/README.scripts.md)
 
