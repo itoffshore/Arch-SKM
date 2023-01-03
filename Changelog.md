@@ -1,3 +1,6 @@
+Version [0.5.4]                                                       - 20230103
+ - update linux-zen patch
+
 Version [0.5.3]                                                       - 20221104
  - update linux-hardened-git patch
 
