@@ -1,15 +1,16 @@
---- PKGBUILD.orig	2022-08-07 22:36:35.609523452 +0100
-+++ PKGBUILD	2022-08-07 22:39:21.205594685 +0100
-@@ -9,7 +9,7 @@ arch=(x86_64)
+--- PKGBUILD.orig	2023-01-05 20:32:31.569566752 +0000
++++ PKGBUILD	2023-01-05 20:34:55.101977711 +0000
+@@ -9,7 +9,8 @@ arch=(x86_64)
  license=(GPL2)
  makedepends=(
    bc libelf pahole cpio perl tar xz
--  xmlto python-sphinx python-sphinx_rtd_theme graphviz imagemagick texlive-latexextra
-+  xmlto python-sphinx python-sphinx_rtd_theme graphviz imagemagick
+-  xmlto 'python-sphinx<6.0.0' python-sphinx_rtd_theme graphviz imagemagick texlive-latexextra
++# xmlto 'python-sphinx<6.0.0' python-sphinx_rtd_theme graphviz imagemagick texlive-latexextra
++  xmlto 'python-sphinx<6.0.0' python-sphinx_rtd_theme graphviz imagemagick
  )
  options=('!strip')
  _srcname=linux-$pkgver
-@@ -43,7 +43,34 @@ export KBUILD_BUILD_USER=$pkgbase
+@@ -41,7 +42,34 @@ export KBUILD_BUILD_USER=$pkgbase
  export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
  
  prepare() {
@@ -45,16 +46,17 @@
  
    echo "Setting version..."
    scripts/setlocalversion --save-scmversion
-@@ -70,7 +97,7 @@ prepare() {
+@@ -68,7 +96,8 @@ prepare() {
  
  build() {
    cd $_srcname
 -  make htmldocs all
++# make htmldocs all
 +  make all
  }
  
  _package() {
-@@ -181,6 +208,33 @@ _package-headers() {
+@@ -179,6 +208,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -88,11 +90,12 @@
  }
  
  _package-docs() {
-@@ -202,7 +256,7 @@ _package-docs() {
+@@ -200,7 +256,8 @@ _package-docs() {
    ln -sr "$builddir/Documentation" "$pkgdir/usr/share/doc/$pkgbase"
  }
  
 -pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
++#pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
 +pkgname=("$pkgbase" "$pkgbase-headers")
  for _p in "${pkgname[@]}"; do
    eval "package_$_p() {
