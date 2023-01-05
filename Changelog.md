@@ -1,3 +1,6 @@
+Version [0.5.5]                                                       - 20230105
+ - update linux-lts patch
+
 Version [0.5.4]                                                       - 20230103
  - update linux-zen patch
 
