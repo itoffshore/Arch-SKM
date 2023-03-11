@@ -1,3 +1,9 @@
+Version [0.5.7]                                                       - 20231103
+ - update linux-lts patch
+
+Version [0.5.6]                                                       - 20232602
+ - update linux-lts patch
+
 Version [0.5.5]                                                       - 20230105
  - update linux-lts patch
 
