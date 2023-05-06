@@ -1,7 +1,16 @@
---- PKGBUILD.orig	2023-01-02 18:00:39.849198106 +0000
-+++ PKGBUILD	2023-01-02 18:03:59.827710776 +0000
-@@ -33,7 +33,34 @@ export KBUILD_BUILD_USER=$pkgbase
- export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
+--- PKGBUILD.orig	2023-05-06 13:14:21.510529144 +0100
++++ PKGBUILD	2023-05-06 13:20:59.342063870 +0100
+@@ -23,7 +23,7 @@ makedepends=(
+   graphviz
+   imagemagick
+   python-sphinx
+-  texlive-latexextra
++  # texlive-latexextra
+   xmlto
+ )
+ options=('!strip')
+@@ -51,7 +51,34 @@ _make() {
+ }
  
  prepare() {
 -  cd $_srcname
@@ -35,18 +44,18 @@
 +# cd $_srcname
  
    echo "Setting version..."
-   scripts/setlocalversion --save-scmversion
-@@ -60,7 +87,8 @@ prepare() {
+   echo "-$pkgrel" > localversion.10-pkgrel
+@@ -79,7 +106,8 @@ prepare() {
  
  build() {
    cd $_srcname
--  make htmldocs all
-+# make htmldocs all
-+  make all
+-  _make htmldocs all
++#  _make htmldocs all
++  _make all
  }
  
  _package() {
-@@ -172,6 +200,33 @@ _package-headers() {
+@@ -202,6 +230,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -80,13 +89,12 @@
  }
  
  _package-docs() {
-@@ -193,7 +248,8 @@ _package-docs() {
-   ln -sr "$builddir/Documentation" "$pkgdir/usr/share/doc/$pkgbase"
- }
- 
--pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
-+#pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
-+pkgname=("$pkgbase" "$pkgbase-headers")
+@@ -226,7 +281,7 @@ _package-docs() {
+ pkgname=(
+   "$pkgbase"
+   "$pkgbase-headers"
+-  "$pkgbase-docs"
++#  "$pkgbase-docs"
+ )
  for _p in "${pkgname[@]}"; do
    eval "package_$_p() {
-     $(declare -f "_package${_p#$pkgbase}")
