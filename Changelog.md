@@ -1,3 +1,6 @@
+Version [0.6.0]                                                       - 20230611
+ - replace asp with devtools (pkgctl)
+
 Version [0.5.8]                                                       - 20230605
  - update linux-zen patch
 

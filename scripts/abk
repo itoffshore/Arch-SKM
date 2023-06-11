@@ -6,7 +6,7 @@
 # --------------------------------------
 # https://github.com/itoffshore/Arch-SKM
 #
-# Stuart Cardall 20221018
+# Stuart Cardall 20230611
 #
 ############################################
 ## USER configuration ######################
@@ -431,11 +431,9 @@ update_kernel() {
 	# download PKGBUILD
 	if [ "$kernel_repo" = "main" ]; then
 
-		if ! asp update "$KERNEL"; then
+		if ! pkgctl repo clone --protocol=https "$KERNEL"; then
 			error "$err_msg"
 			die "$KBUILD_DIR"
-		else
-			msg "$(asp export "$KERNEL")"
 		fi
 
 	elif [ "$kernel_repo" = "aur" ]; then
@@ -682,7 +680,13 @@ patch_pkgbuild() {
 		if patch -s -p0 --dry-run < "$patch_file"; then
 
 			msg "$(patch -p0 < "$patch_file")"
-			msg2 "Ready to run: $0 -b $KERNEL"
+			msg2 "Ready to run: $0 -b $KERNEL <ENTER>"; read -r ans
+
+	                case "$ans" in
+        	          Y*|y*|"") msg "Starting build: $KERNEL"
+				    check_kernel build; time build_kernel ;;
+                	         *) msg2 "Exiting." ; die ;;
+	                esac
 		else
 			error "Cannot cleanly patch $pkgbuild"
 			ask "Remove $patch_file ? [Y/n] : "
