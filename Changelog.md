@@ -1,3 +1,9 @@
+Version [0.6.1]                                                       - 20230620
+ - replace devtools dependency with git & update patches:
+   - linux.patch
+   - linux-zen.patch
+   - linux-libre.patch
+
 Version [0.6.0]                                                       - 20230611
  - replace asp with devtools (pkgctl)
 

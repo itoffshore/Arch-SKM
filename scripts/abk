@@ -116,7 +116,6 @@ check_kernel() {
 		elif echo "$AUR_KERNELS" | grep -qw "$KERNEL"; then
 			REPO='aur'
 		else
-
 			warning "Add '$KERNEL' to AUR_KERNELS in: $USER_CONFIG"
 			msg2 "Assuming '$KERNEL' is from AUR"
 			REPO='aur'
@@ -408,7 +407,7 @@ install_kernel() {
 }
 
 update_kernel() {
-	local kernel_repo=$1 archive=$2 git_retval=
+	local kernel_repo=$1 archive=$2 git_retval= repo_url=
 	local err_msg="Retrieving '$KERNEL' PKGBUILD failed."
 
 	if [ ! -d $BUILD_DIR ]; then
@@ -430,24 +429,21 @@ update_kernel() {
 
 	# download PKGBUILD
 	if [ "$kernel_repo" = "main" ]; then
-
-		if ! pkgctl repo clone --protocol=https "$KERNEL"; then
-			error "$err_msg"
-			die "$KBUILD_DIR"
-		fi
-
+		repo_url=https://gitlab.archlinux.org/archlinux/packaging/packages/"$KERNEL".git
 	elif [ "$kernel_repo" = "aur" ]; then
-		git clone https://aur.archlinux.org/"$KERNEL".git
-		git_retval=$?
-
-		case "$git_retval" in
-		      128) error "$err_msg"; die "$KBUILD_DIR" ;;
-			0) if [ ! -f "$KBUILD_DIR"/PKGBUILD ]; then
-				error "Non existent AUR kernel"; die "$KBUILD_DIR"
-			   fi ;;
-			*) warning "Untrapped git_retval: $git_retval"; die ;;
-		esac
+		repo_url=https://aur.archlinux.org/"$KERNEL".git
 	fi
+
+	git clone "$repo_url"
+	git_retval=$?
+
+	case "$git_retval" in
+	      128) error "$err_msg"; die "$KBUILD_DIR" ;;
+		0) if [ ! -f "$KBUILD_DIR"/PKGBUILD ]; then
+			error "Non existent AUR kernel"; die "$KBUILD_DIR"
+		   fi ;;
+		*) warning "Untrapped git_retval: $git_retval"; die ;;
+	esac
 
 	# automated update
 	patch_pkgbuild

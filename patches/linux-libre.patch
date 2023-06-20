@@ -1,16 +1,24 @@
---- PKGBUILD.orig	2022-05-04 05:33:52.227378497 +0100
-+++ PKGBUILD	2022-05-04 05:35:20.872739319 +0100
-@@ -25,7 +25,7 @@ arch=(i686 x86_64 armv7h)
- license=(GPL2)
- makedepends=(
-   bc libelf pahole cpio perl tar xz
--  xmlto python-sphinx python-sphinx_rtd_theme graphviz imagemagick texlive-latexextra
-+  xmlto python-sphinx python-sphinx_rtd_theme graphviz imagemagick
-   git
+--- PKGBUILD.orig	2023-06-20 19:54:25.599202270 +0100
++++ PKGBUILD	2023-06-20 19:56:47.926087751 +0100
+@@ -35,11 +35,11 @@ makedepends=(
+   xz
+ 
+   # htmldocs
+-  graphviz
+-  imagemagick
+-  python-sphinx
+-  texlive-latexextra
+-  xmlto
++  #graphviz
++  #imagemagick
++  #python-sphinx
++  #texlive-latexextra
++  #xmlto
  )
- makedepends=( ${makedepends[*]/git/} )
-@@ -146,7 +146,34 @@ export KBUILD_BUILD_USER=$pkgbase
- export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
+ makedepends_armv7h=(uboot-tools vboot-utils dtc) # required by linux-libre-chromebook
+ options=('!strip')
+@@ -136,7 +136,34 @@ _make() {
+ }
  
  prepare() {
 -  cd $_srcname
@@ -45,7 +53,17 @@
  
    if [ "${_srcname##*-}" != "$pkgver" ]; then
      echo "Applying upstream patch..."
-@@ -341,6 +368,33 @@ _package-headers() {
+@@ -195,7 +222,8 @@ prepare() {
+ 
+ build() {
+   cd $_srcname
+-  _make htmldocs all
++#  _make htmldocs all
++  _make all
+ }
+ 
+ _package() {
+@@ -332,6 +360,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -79,12 +97,12 @@
  }
  
  _package-docs() {
-@@ -393,7 +447,7 @@ _package-chromebook() {
-   cp vmlinux.kpart "$pkgdir/boot"
- }
- 
--pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
-+pkgname=("$pkgbase" "$pkgbase-headers")
- [[ $CARCH = armv7h ]] && pkgname+=("$pkgbase-chromebook")
+@@ -384,7 +439,7 @@ _package-chromebook() {
+ pkgname=(
+   "$pkgbase"
+   "$pkgbase-headers"
+-  "$pkgbase-docs"
++#  "$pkgbase-docs"
+ )
+ [ "$CARCH" = "armv7h" ] && pkgname+=("$pkgbase-chromebook")
  for _p in "${pkgname[@]}"; do
-   eval "package_$_p() {
