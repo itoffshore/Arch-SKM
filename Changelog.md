@@ -1,3 +1,7 @@
+Version [0.6.2]                                                       - 20230708
+ - update linux.patch
+ - update linux-zen.patch
+
 Version [0.6.1]                                                       - 20230620
  - replace devtools dependency with git & update patches:
    - linux.patch

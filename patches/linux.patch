@@ -1,5 +1,5 @@
---- PKGBUILD.orig	2023-06-20 19:49:48.341750965 +0100
-+++ PKGBUILD	2023-06-20 19:52:46.593947580 +0100
+--- PKGBUILD.orig	2023-07-08 11:51:07.622911878 +0100
++++ PKGBUILD	2023-07-08 11:53:26.221905317 +0100
 @@ -20,10 +20,10 @@ makedepends=(
    xz
  
@@ -8,10 +8,10 @@
 -  imagemagick
 -  python-sphinx
 -  texlive-latexextra
-+  #graphviz
-+  #imagemagick
-+  #python-sphinx
-+  #texlive-latexextra
++#  graphviz
++#  imagemagick
++#  python-sphinx
++#  texlive-latexextra
  )
  options=('!strip')
  _srcname=archlinux-linux
@@ -47,21 +47,20 @@
 +
 +  cd ../$_srcname
 +
-+# cd $_srcname
++#  cd $_srcname
  
    echo "Setting version..."
    echo "-$pkgrel" > localversion.10-pkgrel
-@@ -78,7 +105,8 @@ prepare() {
- 
+@@ -79,7 +106,7 @@ prepare() {
  build() {
    cd $_srcname
--  _make htmldocs all
-+#  _make htmldocs all
-+  _make all
+   _make all
+-  _make htmldocs
++#  _make htmldocs
  }
  
  _package() {
-@@ -201,6 +229,33 @@ _package-headers() {
+@@ -202,6 +229,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -95,7 +94,7 @@
  }
  
  _package-docs() {
-@@ -225,7 +280,7 @@ _package-docs() {
+@@ -226,7 +280,7 @@ _package-docs() {
  pkgname=(
    "$pkgbase"
    "$pkgbase-headers"
