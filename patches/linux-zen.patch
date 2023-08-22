@@ -1,21 +1,6 @@
---- PKGBUILD.orig	2023-07-08 00:00:35.775106683 +0100
-+++ PKGBUILD	2023-07-08 00:24:06.324816506 +0100
-@@ -20,10 +20,10 @@ makedepends=(
-   xz
- 
-   # htmldocs
--  graphviz
--  imagemagick
--  python-sphinx
--  texlive-latexextra
-+#  graphviz
-+#  imagemagick
-+#  python-sphinx
-+#  texlive-latexextra
- )
- options=('!strip')
- _srcname=zen-kernel
-@@ -50,7 +50,34 @@ _make() {
+--- PKGBUILD.orig	2023-08-20 00:01:08.881228358 +0100
++++ PKGBUILD	2023-08-20 00:04:56.247427802 +0100
+@@ -45,7 +45,34 @@ _make() {
  }
  
  prepare() {
@@ -47,20 +32,11 @@
 +
 +  cd ../$_srcname
 +
-+#  cd $_srcname
++# cd $_srcname
  
    echo "Setting version..."
    echo "-$pkgrel" > localversion.10-pkgrel
-@@ -79,7 +106,7 @@ prepare() {
- build() {
-   cd $_srcname
-   _make all
--  _make htmldocs
-+#  _make htmldocs
- }
- 
- _package() {
-@@ -202,6 +229,33 @@ _package-headers() {
+@@ -196,6 +223,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -94,12 +70,12 @@
  }
  
  _package-docs() {
-@@ -226,7 +280,7 @@ _package-docs() {
+@@ -220,7 +274,7 @@ _package-docs() {
  pkgname=(
    "$pkgbase"
    "$pkgbase-headers"
 -  "$pkgbase-docs"
-+#  "$pkgbase-docs"
++# "$pkgbase-docs"
  )
  for _p in "${pkgname[@]}"; do
    eval "package_$_p() {

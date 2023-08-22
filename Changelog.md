@@ -1,3 +1,7 @@
+Version [0.6.4]                                                       - 20230822
+ - update linux-hardened.patch
+ - update linux-zen.patch
+
 Version [0.6.3]                                                       - 20230802
  - update linux-hardened.patch
 
