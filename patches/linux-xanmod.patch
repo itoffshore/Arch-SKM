@@ -1,6 +1,6 @@
---- PKGBUILD.orig	2022-10-19 00:36:07.119531703 +0100
-+++ PKGBUILD	2022-10-19 00:38:16.515737400 +0100
-@@ -220,6 +220,33 @@ prepare() {
+--- PKGBUILD.orig	2023-08-20 13:44:49.701272857 -0400
++++ PKGBUILD	2023-09-03 15:55:37.983486629 -0400
+@@ -226,6 +226,33 @@
  
    # save configuration for later reuse
    cat .config > "${SRCDEST}/config.last"
@@ -34,3 +34,27 @@
  }
  
  build() {
+@@ -342,6 +369,23 @@
+   msg2 "Adding symlink..."
+   mkdir -p "$pkgdir/usr/src"
+   ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
++  
++  #
++  # Out-of-tree module signing
++  # This is run in the kernel source / build directory
++  #
++  msg2 "Local Signing certs for out-of-tree modules..."
++
++  certs_local_src="./certs-local" 
++  certs_local_dst="${builddir}/certs-local"
++  $certs_local_src/install-certs.py $certs_local_dst
++
++  # DKMS tools
++  dkms_src="$certs_local_src/dkms"
++  dkms_dst="${pkgdir}/etc/dkms"
++  mkdir -p $dkms_dst
++
++  rsync -a $dkms_src/{kernel-sign.conf,kernel-sign.sh} $dkms_dst/
+ }
+ 
+ pkgname=("${pkgbase}" "${pkgbase}-headers")
