@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2020-2023 Gene C
 """
 # -------------------------
 #   sign_module.py
@@ -44,13 +46,11 @@
 # kernel sig check or not. So we strip it out. This also removes any debug symbols
 # so it has a downside if the module had any debug info.
 """
-# Gene - 2022-0508
-#
 import os
 import sys
 
 #import pdb
-from signer_class import ModuleTool,KernelModSigner
+from lib import ModuleTool,KernelModSigner
 
 # ------------------------------------------------------
 # modules_from_dir()
