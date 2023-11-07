@@ -1,54 +1,52 @@
-#!/usr/bin/python
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2020-2023 Gene C
 """
-# -------------------------
-#   class KernelModSigner
-#       Handles signing, keys etc
-# -------------------------
-#   class ModuleTool
-#       uses KernelModSigner
-#       For one module: read/write/compress/decompress and sign
-# -------------------------
-#
-# Handle the actual signing of one kernel module
-#
-#  Modules can be uncompressed (.ko) or compressed with zstd (.zst), xz (.xz) or gzip (.gz)
-#  Modules may also be already signed in which case the signature is stripped out before re-signing.
-#
-#  NB - stripping removes all debug info including signature.
-#
-#  Notes:
-#  --------
-#  get_kernel_signer()
-#
-#  sign_module.py is installed in each kernel build directory under certs-local.
-#  So, this uses that to locate the kernel build dir and hence the kernel (compiled) signing tool
-#
-#  i.e.
-#      me = '/usr/lib/modules/<kern-vers>/build/certs-local/sign_module.py'
-#      signer = /usr/lib/modules/<kern-vers>/build/scripts/sign-file
-#
-#  key files reside in current dir:
-#      /usr/lib/modules/<kern-vers>/build/certs-local/current/
-#      signing_key.pem , signing_crt.crt, khash
-#
-# We use file extension to determine if/how compressed. We do not use magic bytes
-# We work in memory rather than via filesystem - each module is small emough its not a problem
-#
-# While it may be fine to leave existing sig and sign the (previously) signed module - we choose to
-# strip it. Maybe simpler and cleaner not to bother - not clear if this may cause problem for
-# kernel sig check or not. So we strip it out. This also removes any debug symbols so it has a
-# different downside if the module had any debug info.
+ -------------------------
+   class KernelModSigner
+       Handles signing, keys etc
+ -------------------------
+   class ModuleTool
+       uses KernelModSigner
+       For one module: read/write/compress/decompress and sign
+ -------------------------
+
+ Handle the actual signing of one kernel module
+
+  Modules can be uncompressed (.ko) or compressed with zstd (.zst), xz (.xz) or gzip (.gz)
+  Modules may also be already signed in which case the signature is stripped out before re-signing.
+
+  NB - stripping removes all debug info including signature.
+
+  Notes:
+  --------
+  get_kernel_signer()
+
+  sign_module.py is installed in each kernel build directory under certs-local.
+  So, this uses that to locate the kernel build dir and hence the kernel (compiled) signing tool
+
+  i.e.
+      me = '/usr/lib/modules/<kern-vers>/build/certs-local/sign_module.py'
+      signer = /usr/lib/modules/<kern-vers>/build/scripts/sign-file
+
+  key files reside in current dir:
+      /usr/lib/modules/<kern-vers>/build/certs-local/current/
+      signing_key.pem , signing_crt.crt, khash
+
+ We use file extension to determine if/how compressed. We do not use magic bytes
+ We work in memory rather than via filesystem - each module is small emough its not a problem
+
+ While it may be fine to leave existing sig and sign the (previously) signed module - we choose to
+ strip it. Maybe simpler and cleaner not to bother - not clear if this may cause problem for
+ kernel sig check or not. So we strip it out. This also removes any debug symbols so it has a
+ different downside if the module had any debug info.
 """
-#
-# Gene - 2022-0508
-#
 import os
 
 import uuid
 import lzma
 import gzip
 import zstandard
-import utils
+from .utils import open_file, remove_file, run_prog
 
 # -------------------------------------------------------------------------------------------
 class KernelModSigner:
@@ -58,6 +56,7 @@ class KernelModSigner:
      Once instantiated use to sign module(s)
      Public methods: sign_module()
     """
+    # pylint: disable=R0903
     def __init__(self, myname):
         self.signer = None
         self.key = None
@@ -72,15 +71,20 @@ class KernelModSigner:
         my_dir = os.path.dirname(my_path)
         build_dir = os.path.dirname(my_dir)
 
+        #
         # signing executable and keys
+        # For maximal consistency we use the kernel sign-file script
+        #
         self.signer = os.path.join(build_dir, 'scripts/sign-file')
         self.key = os.path.join(my_dir, 'current/signing_key.pem')
         self.crt = os.path.join(my_dir, 'current/signing_crt.crt')
         khash_file = os.path.join(my_dir, 'current/khash')
 
+        #
         # missing khash - temp backward compat only - remove at some point
+        #
         if os.path.exists(khash_file) :
-            fobj = utils.open_file(khash_file, 'r')
+            fobj = open_file(khash_file, 'r')
             if fobj:
                 khash = fobj.read()
                 khash = khash.strip()
@@ -108,7 +112,7 @@ class KernelModSigner:
          Does the actual signing of a module file
         """
         pargs = [self.signer, self.khash, self.key, self.crt, mod_path]
-        [retc, _sout, _serr] = utils.run_prog(pargs)
+        [retc, _sout, _serr] = run_prog(pargs)
         if retc != 0:
             print ('Signing failed')
         return retc
@@ -130,7 +134,7 @@ def strip_sig(mod_path):
      Strips out signature from module file
     """
     pargs =  ['/usr/bin/strip', '--strip-debug', mod_path]
-    [retc, _output, _errors] = utils.run_prog(pargs)
+    [retc, _output, _errors] = run_prog(pargs)
     return retc
 
 class ModuleTool:
@@ -139,7 +143,7 @@ class ModuleTool:
      Tools to decompress, recompress and check and remove existing signature, sign module file
      Public methods: read() and sign()
     """
-
+    # pylint: disable=R0902
     def __init__ (self, signer, mod_path):
         self.signer = signer
         self.data = None
@@ -191,7 +195,7 @@ class ModuleTool:
         """
         if self.data:
             return self.data
-        fobj = utils.open_file(self.mod_path, 'rb')
+        fobj = open_file(self.mod_path, 'rb')
         if fobj:
             raw_data = fobj.read()
             fobj.close()
@@ -219,6 +223,7 @@ class ModuleTool:
         """
          sign temp file, compress if needed  and rename to orig.
         """
+        # pylint: disable=R0911
         okay = True
         data = self.read()
         if not data:
@@ -226,7 +231,7 @@ class ModuleTool:
 
         ftmp = str(uuid.uuid4())
         ptmp = os.path.join(self.mod_dir, ftmp)
-        fobj = utils.open_file(ptmp, 'wb')
+        fobj = open_file(ptmp, 'wb')
         if fobj:
             fobj.write(data)
             fobj.close()
@@ -237,16 +242,16 @@ class ModuleTool:
             ret = strip_sig(ptmp)
             if ret != 0:
                 print ('Failed to strip temp file')
-                utils.remove_file(ptmp)
+                remove_file(ptmp)
                 return not okay
 
         ret = self.signer.sign_module(ptmp)
         if ret != 0:
-            utils.remove_file(ptmp)
+            remove_file(ptmp)
             return not okay
 
         if self.compress:
-            fobj = utils.open_file(ptmp, 'rb')
+            fobj = open_file(ptmp, 'rb')
             if fobj:
                 raw_data = fobj.read()
                 fobj.close()
@@ -261,12 +266,12 @@ class ModuleTool:
                     mod_data = lzma.compress(raw_data)
                 case  '.gz' :
                     mod_data = gzip.compress(raw_data)
-            fobj = utils.open_file(ptmp, 'wb')
+            fobj = open_file(ptmp, 'wb')
             if fobj:
                 fobj.write(mod_data)
                 fobj.close()
             else:
-                utils.remove_file(ptmp)
+                remove_file(ptmp)
                 return not okay
 
         os.rename (ptmp, self.mod_path)
