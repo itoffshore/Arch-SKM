@@ -1,3 +1,6 @@
+Version [0.7.0]                                                       - 20231107
+ - update Arch-SKM libs to 3.0.1
+
 Version [0.6.5]                                                       - 20231011
  - update linux-hardened.patch
 
