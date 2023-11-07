@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2020-2023 Gene C
 #
 # Installed in /etc/dkms/kernel-sign.sh
 #
