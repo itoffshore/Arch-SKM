@@ -1,16 +1,21 @@
---- PKGBUILD.orig	2023-03-11 22:18:13.376745647 +0000
-+++ PKGBUILD	2023-03-11 22:23:18.585614526 +0000
-@@ -9,7 +9,8 @@ arch=(x86_64)
- license=(GPL2)
- makedepends=(
-   bc libelf pahole cpio perl tar xz gettext
--  xmlto python-sphinx graphviz imagemagick texlive-latexextra
-+# xmlto python-sphinx graphviz imagemagick texlive-latexextra
-+  xmlto python-sphinx graphviz imagemagick
+--- PKGBUILD.orig	2024-04-06 22:08:51.677302636 +0100
++++ PKGBUILD	2024-04-06 22:12:25.128938141 +0100
+@@ -18,10 +18,10 @@ makedepends=(
+   xz
+ 
+   # htmldocs
+-  graphviz
+-  imagemagick
+-  python-sphinx
+-  texlive-latexextra
++#  graphviz
++#  imagemagick
++#  python-sphinx
++#  texlive-latexextra
  )
  options=('!strip')
  _srcname=linux-$pkgver
-@@ -33,7 +34,34 @@ export KBUILD_BUILD_USER=$pkgbase
+@@ -59,7 +59,34 @@ export KBUILD_BUILD_USER=$pkgbase
  export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
  
  prepare() {
@@ -45,23 +50,27 @@
 +# cd $_srcname
  
    echo "Setting version..."
-   scripts/setlocalversion --save-scmversion
-@@ -60,7 +88,8 @@ prepare() {
- 
+   echo "-$pkgrel" > localversion.10-pkgrel
+@@ -87,10 +114,10 @@ prepare() {
  build() {
    cd $_srcname
--  make htmldocs all
-+# make htmldocs all
-+  make all
+ 
+-  make htmldocs &
+-  local pid_docs=$!
++#  make htmldocs &
++#  local pid_docs=$!
+   make all
+-  wait "${pid_docs}"
++#  wait "${pid_docs}"
  }
  
  _package() {
-@@ -171,6 +200,33 @@ _package-headers() {
-   echo "Adding symlink..."
-   mkdir -p "$pkgdir/usr/src"
-   ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
+@@ -318,6 +345,33 @@ _package-headers() {
+   install -vDm 644 LICENSES/deprecated/{ISC,Linux-OpenIB,X11,Zlib} -t "$pkgdir/usr/share/licenses/$pkgname/"
+   install -vDm 644 LICENSES/preferred/{BSD*,MIT} -t "$pkgdir/usr/share/licenses/$pkgname/"
+   install -vDm 644 LICENSES/exceptions/* -t "$pkgdir/usr/share/licenses/$pkgname/"
 +
-+    # Out-of-tree module signing
++  # Out-of-tree module signing
 +  ##################################################
 +  # this is added at the end of _package-headers() #
 +  ##################################################
@@ -90,13 +99,12 @@
  }
  
  _package-docs() {
-@@ -192,7 +248,8 @@ _package-docs() {
-   ln -sr "$builddir/Documentation" "$pkgdir/usr/share/doc/$pkgbase"
- }
- 
--pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
-+#pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
-+pkgname=("$pkgbase" "$pkgbase-headers")
+@@ -368,7 +422,7 @@ _package-docs() {
+ pkgname=(
+   "$pkgbase"
+   "$pkgbase-headers"
+-  "$pkgbase-docs"
++#  "$pkgbase-docs"
+ )
  for _p in "${pkgname[@]}"; do
    eval "package_$_p() {
-     $(declare -f "_package${_p#$pkgbase}")
