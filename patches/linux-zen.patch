@@ -1,7 +1,24 @@
---- PKGBUILD.orig	2023-08-20 00:01:08.881228358 +0100
-+++ PKGBUILD	2023-08-20 00:04:56.247427802 +0100
-@@ -45,7 +45,34 @@ _make() {
- }
+--- PKGBUILD.orig	2024-04-20 13:25:52.166613600 +0100
++++ PKGBUILD	2024-04-20 13:28:22.143658848 +0100
+@@ -19,11 +19,11 @@ makedepends=(
+   xz
+ 
+   # htmldocs
+-  graphviz
+-  imagemagick
+-  python-sphinx
+-  python-yaml
+-  texlive-latexextra
++#  graphviz
++#  imagemagick
++#  python-sphinx
++#  python-yaml
++#  texlive-latexextra
+ )
+ options=(
+   !debug
+@@ -58,7 +58,34 @@ export KBUILD_BUILD_USER=$pkgbase
+ export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
  
  prepare() {
 -  cd $_srcname
@@ -36,7 +53,16 @@
  
    echo "Setting version..."
    echo "-$pkgrel" > localversion.10-pkgrel
-@@ -196,6 +223,33 @@ _package-headers() {
+@@ -87,7 +114,7 @@ build() {
+   cd $_srcname
+   make all
+   make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
+-  make htmldocs
++# make htmldocs
+ }
+ 
+ _package() {
+@@ -210,6 +237,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -70,7 +96,7 @@
  }
  
  _package-docs() {
-@@ -220,7 +274,7 @@ _package-docs() {
+@@ -234,7 +288,7 @@ _package-docs() {
  pkgname=(
    "$pkgbase"
    "$pkgbase-headers"

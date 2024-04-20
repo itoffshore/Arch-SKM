@@ -1,3 +1,6 @@
+Version [0.7.2]                                                       - 20240420
+ - update linux-zen.patch
+
 Version [0.7.1]                                                       - 20240407
  - update linux-hardened.patch
 
