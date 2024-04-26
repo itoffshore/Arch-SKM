@@ -1,3 +1,7 @@
+Version [0.7.3]                                                       - 20240426
+ - fix post_install() detection of lkrg kernel module
+ - update linux-hardened.patch for kernel 6.8
+
 Version [0.7.2]                                                       - 20240420
  - update linux-zen.patch
 
