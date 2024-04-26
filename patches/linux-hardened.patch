@@ -1,23 +1,25 @@
---- PKGBUILD.orig	2023-10-11 20:05:51.197250890 +0100
-+++ PKGBUILD	2023-10-11 20:09:40.745963103 +0100
-@@ -22,10 +22,10 @@ makedepends=(
+--- PKGBUILD.orig	2024-04-22 12:47:59.692670886 +0300
++++ PKGBUILD	2024-04-22 12:53:57.457416453 +0300
+@@ -22,11 +22,11 @@ makedepends=(
    xz
- 
+
    # htmldocs
 -  graphviz
 -  imagemagick
 -  python-sphinx
+-  python-yaml
 -  texlive-latexextra
-+#  graphviz
-+#  imagemagick
-+#  python-sphinx
-+#  texlive-latexextra
++#   graphviz
++#   imagemagick
++#   python-sphinx
++#   python-yaml
++#   texlive-latexextra
  )
- options=('!strip')
- _srcname=linux-${pkgver%.*}
-@@ -57,7 +57,34 @@ export KBUILD_BUILD_USER=$pkgbase
+ options=(
+   !debug
+@@ -64,7 +64,34 @@ export KBUILD_BUILD_USER=$pkgbase
  export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
- 
+
  prepare() {
 -  cd $_srcname
 +  # Out-of-tree module signing
@@ -47,26 +49,27 @@
 +
 +  cd ../$_srcname
 +
-+# cd $_srcname
- 
++  # cd $_srcname
+
    echo "Setting version..."
    echo "-$pkgrel" > localversion.10-pkgrel
-@@ -85,11 +112,11 @@ prepare() {
+@@ -92,12 +119,12 @@ prepare() {
  build() {
    cd $_srcname
- 
+
 -  make htmldocs &
 -  local pid_docs=$!
-+#  make htmldocs &
-+#  local pid_docs=$!
- 
++#   make htmldocs &
++#   local pid_docs=$!
+
    make all
+   # make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
 -  wait "${pid_docs}"
-+#  wait "${pid_docs}"
++#   wait "${pid_docs}"
  }
- 
+
  _package() {
-@@ -211,6 +238,33 @@ _package-headers() {
+@@ -219,6 +246,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -98,14 +101,21 @@
 +
 +  rsync -a $dkms_src/{kernel-sign.conf,kernel-sign.sh} $dkms_dst/
  }
- 
+
  _package-docs() {
-@@ -235,7 +289,7 @@ _package-docs() {
+@@ -240,10 +294,14 @@ _package-docs() {
+   ln -sr "$builddir/Documentation" "$pkgdir/usr/share/doc/$pkgbase"
+ }
+
++# pkgname=(
++#   "$pkgbase"
++#   "$pkgbase-headers"
++#   "$pkgbase-docs"
++# )
  pkgname=(
    "$pkgbase"
    "$pkgbase-headers"
 -  "$pkgbase-docs"
-+# "$pkgbase-docs"
  )
  for _p in "${pkgname[@]}"; do
    eval "package_$_p() {
