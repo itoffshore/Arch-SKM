@@ -6,7 +6,7 @@
 # --------------------------------------
 # https://github.com/itoffshore/Arch-SKM
 #
-# Stuart Cardall 20230611
+# Stuart Cardall 20240822
 #
 ############################################
 ## USER configuration ######################
@@ -587,14 +587,21 @@ clean_logs() {
 	# build_kernel() leaves named pipes from makepkg logging
 	# if user response to clean_dir() takes too long
 	if [ -n "$logpipe_list" ]; then
-		rm -f "$logpipe_list"
+		for x in $logpipe_list; do
+			rm -f "$x"
+			echo "removed: $x"
+		done
+		msg "Removed all makepkg logpipes in: $log_dir"
 	fi
 
 	if [ -n "$log_list" ]; then
 		ask "Remove log files in: $log_dir ? [all/y/N] : "; read -r ans
 
 		case "$ans" in
-		      all|ALL) rm -f "$log_list"
+		      all|ALL) for x in $log_list; do
+					rm -f "$x"
+					echo "removed: $x"
+				done
 				msg "Removed all makepkg logs in: $log_dir"
 				;;
 			  y|Y) msg "<ENTER> to remove each following log (any other input to keep):\n"
