@@ -1,3 +1,6 @@
+Version [0.7.5]                                                       - 20240823
+ - small change to rebuild lists
+
 Version [0.7.4]                                                       - 20240823
  - add urlwatch examples
  - improve kernel rebuild list / add archive option -a
