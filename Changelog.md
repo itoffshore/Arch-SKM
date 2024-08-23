@@ -1,3 +1,7 @@
+Version [0.7.4]                                                       - 20240823
+ - add urlwatch examples
+ - improve kernel rebuild list / add archive option -a
+
 Version [0.7.3]                                                       - 20240426
  - fix post_install() detection of lkrg kernel module
  - update linux-hardened.patch for kernel 6.8
