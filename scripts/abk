@@ -54,6 +54,7 @@ Usage: $script [OPTIONS]
 	[ -b ] : build [ kernel-name ]
 	[ -i ] : install [ kernel-name / AUR pkgname ]
 	[ -r ] : rebuild [ kernel-name ]
+	[ -a ] : archive [ kernel-name ]
 	[ -y ] : yes ( assume YES answers during build stage )
 	[ -c ] : clean [ /path/to/directory ] ( quickly with rsync )
 	[ -s ] : clean makepkg source dir selectively ( $(parse_makepkg SRCDEST) )
@@ -81,6 +82,10 @@ Automated mode can also be enabled by adding AUTOMATED=Y to your ~/.config/abk.c
 To rebuild a previous kernel PKGBUILD that abk archived in \$BUILD_DIR/kernel-ver.tar.xz:
 ----------------------------------------------------------------------------------------
  $script -r linux-hardened
+
+To archive & version (but not build) your current \$BUILD_DIR/kernel-name:
+-------------------------------------------------------------------------
+ $script -a linux-hardened
 
 Utilities:
 --------------------------
@@ -420,7 +425,7 @@ update_kernel() {
 
 	# backup old config
 	if [ "$archive" != "nobackup" ]; then
-		archive_config "$KERNEL"
+		archive_config
 	fi
 
 	# clean old config
@@ -501,8 +506,9 @@ rebuild_kernel() {
 
 	tmp=$(mktemp)
 
+	# find output in date order
 	kern_list=$(find "$BUILD_DIR" -maxdepth 1 -type f -regextype posix-extended \
-			-regex ".*$KERNEL\-[0-9\.]+.*.tar.xz" | sort)
+			-regex ".*$KERNEL\-[0-9\.]+.*.tar.xz" -printf "%T+ %p\n" | sort | awk '{print $2}')
 
 	# print kernel archive menu
 	if [ -n "$kern_list" ]; then
@@ -535,7 +541,6 @@ rebuild_kernel() {
 	echo
 
 	# unpack archived PKGBUILD & run a build
-	archive_config
 	tar -xJf "$kernel_rebuild"
 	time build_kernel
 }
@@ -684,6 +689,10 @@ patch_pkgbuild() {
 		if patch -s -p0 --dry-run < "$patch_file"; then
 
 			msg "$(patch -p0 < "$patch_file")"
+
+			# backup new patched config
+			archive_config
+
 			msg2 "Ready to run: $0 -b $KERNEL <ENTER>"; read -r ans
 
 	                case "$ans" in
@@ -800,7 +809,7 @@ get_options() {
 	# check build dir & editors
 	check_config
 
-	while getopts ":u:b:i:r:c:w:hsloy" opt
+	while getopts ":u:b:i:r:a:c:w:hsloy" opt
 
 	do
 		if [ -n "${OPTARG}" ]; then
@@ -814,6 +823,7 @@ get_options() {
 			b) KERNEL=${OPTARG}; check_kernel build; time build_kernel ;;
 			i) KERNEL=${OPTARG}; check_kernel install; install_kernel ;;
 			r) KERNEL=${OPTARG}; check_kernel rebuild; rebuild_kernel ;;
+			a) KERNEL=${OPTARG}; check_kernel rebuild; archive_config ;;
 			y) AUTOMATED='Y' ;;
 			c) check_args "$opt" dir "$arg" ; clean_dir "$arg" sources ;;
 			s) clean_sources ;;

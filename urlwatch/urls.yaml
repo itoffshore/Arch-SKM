@@ -1,0 +1,26 @@
+# ~/.config/urlwatch/urlwatch.yaml #
+####################################
+---
+name: "linux-lts"
+url: "https://archlinux.org/packages/core/x86_64/linux-lts/"
+filter:
+  - element-by-tag: title
+---
+
+name: "linux-hardened"
+url: "https://www.archlinux.org/packages/extra/x86_64/linux-hardened/"
+filter:
+  - element-by-tag: title
+---
+
+name: "linux-zen"
+url: "https://www.archlinux.org/packages/extra/x86_64/linux-zen/"
+filter:
+  - element-by-tag: title
+---
+
+name: "linux"
+url: "https://archlinux.org/packages/core/x86_64/linux/"
+filter:
+  - element-by-tag: title
+---

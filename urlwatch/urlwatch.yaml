@@ -1,0 +1,23 @@
+# ~/.config/urlwatch/urlwatch.yaml #
+####################################
+
+display:
+  empty-diff: true
+  error: false
+  new: true
+  unchanged: false
+job_defaults:
+  all: {}
+  browser: {}
+  shell: {}
+  url:
+    ignore_connection_errors: true
+report:
+
+  ...
+
+# various alert options email / xmpp / others
+# https://urlwatch.readthedocs.io/en/latest/reporters.html
+#
+# crontab -e (check kernels every 2 hours)
+# 0 0-23/2 * * *  /usr/bin/urlwatch
