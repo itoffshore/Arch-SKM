@@ -6,7 +6,7 @@
 # --------------------------------------
 # https://github.com/itoffshore/Arch-SKM
 #
-# Stuart Cardall 20240822
+# Stuart Cardall 20240901
 #
 ############################################
 ## USER configuration ######################
@@ -540,7 +540,7 @@ rebuild_kernel() {
 	echo
 
 	# unpack archived PKGBUILD & run a build
-	tar -xJf "$kernel_rebuild"
+	tar -C $BUILD_DIR -xJf "$kernel_rebuild"
 	time build_kernel
 }
 

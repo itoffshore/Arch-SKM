@@ -1,3 +1,6 @@
+Version [0.7.6]                                                       - 20240901
+ - small fix to rebuilds
+
 Version [0.7.5]                                                       - 20240823
  - small change to rebuild lists
 
