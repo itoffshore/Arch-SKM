@@ -305,7 +305,7 @@ remove_old_pkgs() {
 		ask "Remove packages ? [y/N] [ default: --dry-run ] : "; read -r ans; echo
 
 		case "$ans" in
-			y|Y) eval paccache -rvk${keep} -c "$pkgdir" "$target" ;;
+		      y*|Y*) eval paccache -rvk${keep} -c "$pkgdir" "$target" ;;
 			  *) eval paccache -dvk${keep} -c "$pkgdir" "$target" ;;
 		esac
 	else
@@ -487,9 +487,9 @@ build_kernel() {
 		    esac
 
 		    case "$ans" in
-			y|Y) BUILDDIR=$MAKEPKG_DIR makepkg -sf -L
-			     makepkg_retval=$? ;;
-			  *) error "NOT forcing overwrite: ending build."; die $MAKEPKG_DIR ;;
+			y*|Y*) BUILDDIR=$MAKEPKG_DIR makepkg -sf -L
+			       makepkg_retval=$? ;;
+			    *) error "NOT forcing overwrite: ending build."; die $MAKEPKG_DIR ;;
 		    esac
 		    ;;
 
@@ -558,16 +558,16 @@ clean_dir() {
 		esac
 
 		case "$ans" in
-			y|Y) msg "Cleaning up: $dir..."
-			     rsync -a --delete "$tmp"/ "$dir"/
-			     rmdir "$tmp" "$dir"
-			     ;;
-			  *) if [ "$clean_type" = "build" ]; then
-				error "Cannot build without cleaning: $dir"; die
-			     else
-				warning "Not cleaning: $dir"
-			     fi
-			     ;;
+			y*|Y*) msg "Cleaning up: $dir..."
+			       rsync -a --delete "$tmp"/ "$dir"/
+			       rmdir "$tmp" "$dir"
+			       ;;
+			    *) if [ "$clean_type" = "build" ]; then
+				  error "Cannot build without cleaning: $dir"; die
+			       else
+				  warning "Not cleaning: $dir"
+			       fi
+			       ;;
 		esac
 	else
 		error "Directory does not exist: $dir"
@@ -639,7 +639,7 @@ clean_sources() {
 	fi
 
 	case "$ans" in
-		y|Y) dir_list=$(find "$src_dir" -mindepth 1 -maxdepth 1 -type d)
+		y*|Y*) dir_list=$(find "$src_dir" -mindepth 1 -maxdepth 1 -type d)
 
 			# selectively clean directories
 			for dir in $dir_list; do
@@ -654,7 +654,7 @@ clean_sources() {
 				rm -f "$file"
 			done
 			;;
-		  *) warning "Not cleaning sources: $src_dir" ;;
+		    *) warning "Not cleaning sources: $src_dir" ;;
 	esac
 }
 
