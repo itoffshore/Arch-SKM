@@ -1,26 +1,22 @@
---- PKGBUILD.orig	2024-10-06 17:02:27.645290233 +0100
-+++ PKGBUILD	2024-10-06 17:05:04.978140296 +0100
-@@ -56,11 +56,11 @@ makedepends=(
-   kmod
-   xmlto
-   # htmldocs
--  graphviz
--  imagemagick
--  python-sphinx
--  python-yaml
--  texlive-latexextra
-+#  graphviz
-+#  imagemagick
-+#  python-sphinx
-+#  python-yaml
-+#  texlive-latexextra
- )
- makedepends+=(
-   bison
-@@ -121,6 +121,31 @@ export KBUILD_BUILD_USER=$pkgbase
+--- PKGBUILD.orig	2024-10-06 16:04:28.526485430 +0100
++++ PKGBUILD	2024-10-06 16:10:34.065141343 +0100
+@@ -8,8 +8,9 @@ pkgdesc='Linux RT'
+ arch=(x86_64)
+ url="https://gitlab.archlinux.org/dvzrv/linux-rt/-/commits/v${pkgver}"
+ license=(GPL2)
+-makedepends=(bc cpio git graphviz imagemagick libelf pahole perl
+-python-sphinx python-sphinx_rtd_theme tar texlive-latexextra xmlto xz)
++#makedepends=(bc cpio git graphviz imagemagick libelf pahole perl
++#python-sphinx python-sphinx_rtd_theme tar texlive-latexextra xmlto xz)
++makedepends=(bc cpio git libelf pahole perl tar xmlto xz)
+ options=(!strip)
+ source=(
+   git+https://gitlab.archlinux.org/dvzrv/linux-rt#tag=v$pkgver?signed
+@@ -31,7 +32,34 @@ export KBUILD_BUILD_USER=$pkgbase
  export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
  
- prepare(){
+ prepare() {
+-  cd $pkgbase
 +    # Out-of-tree module signing
 +  #
 +  ######################################################
@@ -46,11 +42,24 @@
 +  # /usr/src/certs-local/genkeys.py -h
 +  ./genkeys.py -v --config '../config*'
 +
-   cd ${srcdir}/linux-$_pkgver
++  cd ../$pkgbase
++
++# cd $pkgbase
  
-   local src
-@@ -357,6 +382,33 @@ _package-headers(){
-   msg "Adding symlink..."
+   echo "Setting version..."
+   scripts/setlocalversion --save-scmversion
+@@ -60,7 +88,8 @@ prepare() {
+ 
+ build() {
+   cd $pkgbase
+-  make htmldocs all
++# make htmldocs all
++  make all
+ }
+ 
+ _package() {
+@@ -170,6 +199,33 @@ _package-headers() {
+   echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
 +
@@ -82,4 +91,14 @@
 +  rsync -a $dkms_src/{kernel-sign.conf,kernel-sign.sh} $dkms_dst/
  }
  
- sha256sums=('30909eb2e0434dce97a93cd97ed0dfab7688a124bc3ebc3ecf6c776de09ccc0b'
+ _package-docs() {
+@@ -191,7 +247,8 @@ _package-docs() {
+   ln -sr "$builddir/Documentation" "$pkgdir/usr/share/doc/$pkgbase"
+ }
+ 
+-pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
++#pkgname=("$pkgbase" "$pkgbase-headers" "$pkgbase-docs")
++pkgname=("$pkgbase" "$pkgbase-headers")
+ for _p in "${pkgname[@]}"; do
+   eval "package_$_p() {
+     $(declare -f "_package${_p#$pkgbase}")

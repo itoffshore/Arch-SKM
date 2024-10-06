@@ -1,3 +1,9 @@
+Version [0.7.7]                                                       - 20241006
+ - update patch for linux-amd
+ - add new patch for linux-rt => NB: zfs modules do not support
+   real-time kernels yet & will fail to build
+ - update README for zenpower3 & linux-rt
+
 Version [0.7.6]                                                       - 20240901
  - small fix to rebuilds
 
