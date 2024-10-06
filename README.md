@@ -12,6 +12,7 @@
 * `linux-hardened`
 * `linux-hardened-git`
 * `linux-zen`
+* `linux-rt`
 * `linux-amd`
 * `linux-ck`
 * `linux-libre`
@@ -23,6 +24,7 @@ With **DKMS** support for the following _Out of Tree_ Kernel Modules:
 * [ZFS](https://aur.archlinux.org/packages/zfs-dkms/)
 * [Nvidia](https://archlinux.org/packages/extra/x86_64/nvidia-dkms/)
 * [Linux Kernel Runtime Guard](https://aur.archlinux.org/packages/lkrg-dkms/)
+* [Zenpower3](https://aur.archlinux.org/packages/zenpower3-dkms)
 
 ---
 
