@@ -1,25 +1,8 @@
---- PKGBUILD.orig	2024-04-22 12:47:59.692670886 +0300
-+++ PKGBUILD	2024-04-22 12:53:57.457416453 +0300
-@@ -22,11 +22,11 @@ makedepends=(
-   xz
-
-   # htmldocs
--  graphviz
--  imagemagick
--  python-sphinx
--  python-yaml
--  texlive-latexextra
-+#   graphviz
-+#   imagemagick
-+#   python-sphinx
-+#   python-yaml
-+#   texlive-latexextra
- )
- options=(
-   !debug
+--- PKGBUILD.orig	2025-05-14 14:12:19.325582590 +0300
++++ PKGBUILD	2025-05-14 14:15:01.502059303 +0300
 @@ -64,7 +64,34 @@ export KBUILD_BUILD_USER=$pkgbase
  export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
-
+ 
  prepare() {
 -  cd $_srcname
 +  # Out-of-tree module signing
@@ -50,26 +33,10 @@
 +  cd ../$_srcname
 +
 +  # cd $_srcname
-
+ 
    echo "Setting version..."
    echo "-$pkgrel" > localversion.10-pkgrel
-@@ -92,12 +119,12 @@ prepare() {
- build() {
-   cd $_srcname
-
--  make htmldocs &
--  local pid_docs=$!
-+#   make htmldocs &
-+#   local pid_docs=$!
-
-   make all
-   # make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
--  wait "${pid_docs}"
-+#   wait "${pid_docs}"
- }
-
- _package() {
-@@ -219,6 +246,33 @@ _package-headers() {
+@@ -230,6 +257,33 @@ _package-headers() {
    echo "Adding symlink..."
    mkdir -p "$pkgdir/usr/src"
    ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
@@ -101,12 +68,12 @@
 +
 +  rsync -a $dkms_src/{kernel-sign.conf,kernel-sign.sh} $dkms_dst/
  }
-
+ 
  _package-docs() {
-@@ -240,10 +294,14 @@ _package-docs() {
+@@ -251,10 +305,14 @@ _package-docs() {
    ln -sr "$builddir/Documentation" "$pkgdir/usr/share/doc/$pkgbase"
  }
-
+ 
 +# pkgname=(
 +#   "$pkgbase"
 +#   "$pkgbase-headers"
