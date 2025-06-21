@@ -1,20 +1,22 @@
---- PKGBUILD.orig	2024-04-06 22:08:51.677302636 +0100
-+++ PKGBUILD	2024-04-06 22:12:25.128938141 +0100
-@@ -18,10 +18,10 @@ makedepends=(
+--- PKGBUILD.orig	2025-06-21 00:34:51.981592069 +0100
++++ PKGBUILD	2025-06-21 00:38:21.532926148 +0100
+@@ -18,11 +18,11 @@ makedepends=(
    xz
  
    # htmldocs
 -  graphviz
 -  imagemagick
 -  python-sphinx
+-  python-yaml
 -  texlive-latexextra
 +#  graphviz
 +#  imagemagick
 +#  python-sphinx
++#  python-yaml
 +#  texlive-latexextra
  )
- options=('!strip')
- _srcname=linux-$pkgver
+ options=(
+   !debug
 @@ -59,7 +59,34 @@ export KBUILD_BUILD_USER=$pkgbase
  export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
  
@@ -51,7 +53,7 @@
  
    echo "Setting version..."
    echo "-$pkgrel" > localversion.10-pkgrel
-@@ -87,10 +114,10 @@ prepare() {
+@@ -87,11 +114,11 @@ prepare() {
  build() {
    cd $_srcname
  
@@ -60,12 +62,13 @@
 +#  make htmldocs &
 +#  local pid_docs=$!
    make all
+   make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
 -  wait "${pid_docs}"
 +#  wait "${pid_docs}"
  }
  
  _package() {
-@@ -318,6 +345,33 @@ _package-headers() {
+@@ -321,6 +348,33 @@ _package-headers() {
    install -vDm 644 LICENSES/deprecated/{ISC,Linux-OpenIB,X11,Zlib} -t "$pkgdir/usr/share/licenses/$pkgname/"
    install -vDm 644 LICENSES/preferred/{BSD*,MIT} -t "$pkgdir/usr/share/licenses/$pkgname/"
    install -vDm 644 LICENSES/exceptions/* -t "$pkgdir/usr/share/licenses/$pkgname/"
@@ -99,12 +102,3 @@
  }
  
  _package-docs() {
-@@ -368,7 +422,7 @@ _package-docs() {
- pkgname=(
-   "$pkgbase"
-   "$pkgbase-headers"
--  "$pkgbase-docs"
-+#  "$pkgbase-docs"
- )
- for _p in "${pkgname[@]}"; do
-   eval "package_$_p() {

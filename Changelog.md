@@ -1,3 +1,6 @@
+Version [0.7.8]                                                       - 20250621
+ - update patches for linux-lts / linux-hardened
+
 Version [0.7.7]                                                       - 20241006
  - update patch for linux-amd
  - add new patch for linux-rt => NB: zfs modules do not support
